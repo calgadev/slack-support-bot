@@ -15,6 +15,7 @@ from support_bot.health import write_heartbeat
 from support_bot.llm.client import GeminiClient
 from support_bot.logging_setup import configure_logging, get_logger
 from support_bot.orchestrator import Orchestrator
+from support_bot.rag.store import Retriever, VectorStore
 from support_bot.slack.handlers import MessageHandler
 
 log = get_logger(__name__)
@@ -38,7 +39,16 @@ def build_app(settings: Settings) -> App:
     if settings.slack_bot_token is None:
         raise RuntimeError("SLACK_BOT_TOKEN is not set")
     app = App(token=settings.slack_bot_token.get_secret_value())
-    handler = MessageHandler(Orchestrator(build_llm(settings)), settings)
+    llm = build_llm(settings)
+    store = VectorStore(
+        settings.chroma_dir, settings.gemini_embedding_model, settings.gemini_embedding_dim
+    )
+    store.check_compatible()
+    if store.count() == 0:
+        log.warning("knowledge_base_empty", hint="run `uv run support-bot-ingest`")
+    retriever = Retriever(store, llm, settings.retrieval_top_k)
+    orchestrator = Orchestrator(llm, retriever, settings.retrieval_min_score)
+    handler = MessageHandler(orchestrator, settings)
 
     @app.event("app_mention")
     def on_mention(event: dict[str, Any], client: Any, context: BoltContext) -> None:
@@ -86,7 +96,7 @@ def main() -> None:
     configure_logging(settings.log_level)
     try:
         run(settings)
-    except RuntimeError as exc:
+    except RuntimeError as exc:  # includes EmbeddingConfigMismatch
         log.error("startup_failed", error=str(exc))
         sys.exit(1)
 

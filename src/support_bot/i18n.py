@@ -99,6 +99,13 @@ MESSAGES: dict[str, dict[Lang, str]] = {
         "en": "Sorry, something went wrong on my side. The error was logged.",
         "pt": "Desculpe, algo deu errado do meu lado. O erro foi registrado.",
     },
+    "low_confidence": {
+        "en": "I couldn't find a reliable answer to this in the Acme knowledge base, so I'd "
+        "rather not guess. Would you like me to open a support ticket for you?",
+        "pt": "Não encontrei uma resposta confiável para isso na base de conhecimento da Acme, "
+        "então prefiro não chutar. Quer que eu abra um chamado para você?",
+    },
+    "sources": {"en": "Sources", "pt": "Fontes"},
     "too_long": {
         "en": "Your message is too long ({length} characters, limit {limit}). Please shorten it.",
         "pt": "Sua mensagem é longa demais ({length} caracteres, limite {limit}). Por favor, "

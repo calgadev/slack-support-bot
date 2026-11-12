@@ -6,10 +6,10 @@ import re
 from typing import Any, Protocol
 
 from support_bot.config import Settings
-from support_bot.i18n import detect_language, t
+from support_bot.i18n import Lang, detect_language, t
 from support_bot.llm.client import LLMError
 from support_bot.logging_setup import get_logger
-from support_bot.orchestrator import Orchestrator
+from support_bot.orchestrator import Answer, Orchestrator
 
 log = get_logger(__name__)
 
@@ -30,6 +30,15 @@ def should_ignore(event: dict[str, Any], bot_user_id: str | None) -> bool:
     if event.get("bot_id") or event.get("subtype"):
         return True
     return bool(bot_user_id and event.get("user") == bot_user_id)
+
+
+def format_answer(answer: Answer, lang: Lang) -> str:
+    if answer.outcome != "answered":
+        return t("low_confidence", lang)
+    sources = "\n".join(
+        f"[{n}] {chunk.citation}" for n, chunk in enumerate(answer.citations, start=1)
+    )
+    return f"{answer.text}\n\n*{t('sources', lang)}:*\n{sources}"
 
 
 class MessageHandler:
@@ -64,4 +73,4 @@ class MessageHandler:
             log.exception("handler_failed")
             post(t("internal_error", lang))
             return
-        post(answer.text or t("internal_error", lang))
+        post(format_answer(answer, lang))

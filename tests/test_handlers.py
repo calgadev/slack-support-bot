@@ -4,13 +4,15 @@ from support_bot.llm.client import LLMError
 from support_bot.orchestrator import Orchestrator
 from support_bot.slack.handlers import MessageHandler, clean_text
 from tests.fakes import FakeLLM, FakeSlackClient, text_response
+from tests.test_orchestrator import StubRetriever, chunk
 
 BOT = "UBOT"
 
 
 def make(responses, **settings_kwargs):
     llm = FakeLLM(responses)
-    handler = MessageHandler(Orchestrator(llm), Settings(**settings_kwargs))
+    orchestrator = Orchestrator(llm, StubRetriever([chunk(1, 0.9)]), 0.5)  # type: ignore[arg-type]
+    handler = MessageHandler(orchestrator, Settings(**settings_kwargs))
     return handler, llm, FakeSlackClient()
 
 
@@ -19,13 +21,19 @@ def event(text: str, **extra):
 
 
 def test_replies_in_thread_with_llm_text() -> None:
-    handler, _, slack = make([text_response("Use the VPN portal.")])
+    handler, _, slack = make([text_response("Use the VPN portal [1].")])
     handler.handle(event(f"<@{BOT}> how do I use the VPN?"), slack, BOT)
-    assert slack.posted == [{"channel": "D1", "thread_ts": "1.0", "text": "Use the VPN portal."}]
+    assert slack.posted == [
+        {
+            "channel": "D1",
+            "thread_ts": "1.0",
+            "text": "Use the VPN portal [1].\n\n*Sources:*\n[1] VPN Access > Section 1",
+        }
+    ]
 
 
 def test_keeps_existing_thread() -> None:
-    handler, _, slack = make([text_response("ok")])
+    handler, _, slack = make([text_response("ok [1]")])
     handler.handle(event("question", thread_ts="0.5"), slack, BOT)
     assert slack.posted[0]["thread_ts"] == "0.5"
 
@@ -66,3 +74,11 @@ def test_clean_text_and_language() -> None:
     assert clean_text("<@U123|bot>  hello ") == "hello"
     assert detect_language("Como faço para redefinir minha senha?") == "pt"
     assert detect_language("How do I reset my password?") == "en"
+
+
+def test_low_confidence_offers_ticket_in_portuguese() -> None:
+    from support_bot.llm.prompts import NO_ANSWER
+
+    handler, _, slack = make([text_response(NO_ANSWER)])
+    handler.handle(event("qual é o cardápio do refeitório hoje?"), slack, BOT)
+    assert "abra um chamado" in slack.texts[0]
