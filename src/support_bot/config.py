@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     # Retrieval
     knowledge_base_dir: Path = Path("knowledge_base")
     retrieval_top_k: int = Field(default=4, ge=1, le=20)
-    retrieval_min_score: float = Field(default=0.5, ge=-1.0, le=1.0)
+    retrieval_min_score: float = Field(default=0.65, ge=-1.0, le=1.0)
 
     # Tickets
     pending_action_ttl_seconds: int = Field(default=900, ge=60)

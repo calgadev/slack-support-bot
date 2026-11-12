@@ -1,0 +1,678 @@
+{
+  "meta": {
+    "date": "2026-11-12 21:08 UTC",
+    "model": "gemini-3.8-flash",
+    "judge_model": "gemini-3.8-flash",
+    "embedding_model": "gemini-embedding-2",
+    "embedding_dim": 768,
+    "min_score": 0.65,
+    "generation": false
+  },
+  "metrics": {
+    "items": 30,
+    "answerable": 25,
+    "unanswerable": 5,
+    "k": 4,
+    "hit_at_1": 0.92,
+    "hit_at_k": 1.0,
+    "calibration": [
+      {
+        "threshold": 0.3,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.35,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.4,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.45,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.5,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.55,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.6,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.2
+      },
+      {
+        "threshold": 0.65,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.6
+      },
+      {
+        "threshold": 0.7,
+        "answerable_kept": 0.92,
+        "unanswerable_blocked": 0.8
+      },
+      {
+        "threshold": 0.75,
+        "answerable_kept": 0.76,
+        "unanswerable_blocked": 1.0
+      },
+      {
+        "threshold": 0.8,
+        "answerable_kept": 0.36,
+        "unanswerable_blocked": 1.0
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "vpn-01",
+      "answerable": true,
+      "expected_source": "vpn-access.md",
+      "retrieved_sources": [
+        "vpn-access.md",
+        "vpn-access.md",
+        "erp-access-error.md",
+        "vpn-access.md"
+      ],
+      "top_score": 0.7837,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "vpn-02",
+      "answerable": true,
+      "expected_source": "vpn-access.md",
+      "retrieved_sources": [
+        "vpn-access.md",
+        "vpn-access.md",
+        "vpn-access.md",
+        "how-to-open-a-ticket.md"
+      ],
+      "top_score": 0.7832,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "vpn-03",
+      "answerable": true,
+      "expected_source": "vpn-access.md",
+      "retrieved_sources": [
+        "vpn-access.md",
+        "vpn-access.md",
+        "vpn-access.md",
+        "vpn-access.md"
+      ],
+      "top_score": 0.6629,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "pwd-01",
+      "answerable": true,
+      "expected_source": "password-reset.md",
+      "retrieved_sources": [
+        "password-reset.md",
+        "password-reset.md",
+        "password-reset.md",
+        "mfa-issues.md"
+      ],
+      "top_score": 0.7787,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "pwd-02",
+      "answerable": true,
+      "expected_source": "password-reset.md",
+      "retrieved_sources": [
+        "password-reset.md",
+        "password-reset.md",
+        "erp-access-error.md",
+        "password-reset.md"
+      ],
+      "top_score": 0.8081,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "pwd-03",
+      "answerable": true,
+      "expected_source": "password-reset.md",
+      "retrieved_sources": [
+        "password-reset.md",
+        "password-reset.md",
+        "password-reset.md",
+        "password-reset.md"
+      ],
+      "top_score": 0.7433,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "mfa-01",
+      "answerable": true,
+      "expected_source": "mfa-issues.md",
+      "retrieved_sources": [
+        "mfa-issues.md",
+        "mfa-issues.md",
+        "password-reset.md",
+        "mfa-issues.md"
+      ],
+      "top_score": 0.773,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "mfa-02",
+      "answerable": true,
+      "expected_source": "mfa-issues.md",
+      "retrieved_sources": [
+        "mfa-issues.md",
+        "mfa-issues.md",
+        "mfa-issues.md",
+        "mfa-issues.md"
+      ],
+      "top_score": 0.8068,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "mfa-03",
+      "answerable": true,
+      "expected_source": "mfa-issues.md",
+      "retrieved_sources": [
+        "mfa-issues.md",
+        "mfa-issues.md",
+        "mfa-issues.md",
+        "vpn-access.md"
+      ],
+      "top_score": 0.8548,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "erp-01",
+      "answerable": true,
+      "expected_source": "erp-access-error.md",
+      "retrieved_sources": [
+        "erp-access-error.md",
+        "erp-access-error.md",
+        "erp-access-error.md",
+        "erp-access-error.md"
+      ],
+      "top_score": 0.8854,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "erp-02",
+      "answerable": true,
+      "expected_source": "erp-access-error.md",
+      "retrieved_sources": [
+        "erp-access-error.md",
+        "erp-access-error.md",
+        "erp-access-error.md",
+        "erp-access-error.md"
+      ],
+      "top_score": 0.7769,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "ssl-01",
+      "answerable": true,
+      "expected_source": "ssl-certificate-expiry.md",
+      "retrieved_sources": [
+        "ssl-certificate-expiry.md",
+        "ssl-certificate-expiry.md",
+        "ssl-certificate-expiry.md",
+        "ssl-certificate-expiry.md"
+      ],
+      "top_score": 0.8206,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "ssl-02",
+      "answerable": true,
+      "expected_source": "ssl-certificate-expiry.md",
+      "retrieved_sources": [
+        "ssl-certificate-expiry.md",
+        "how-to-open-a-ticket.md",
+        "ssl-certificate-expiry.md",
+        "ssl-certificate-expiry.md"
+      ],
+      "top_score": 0.7955,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "drive-01",
+      "answerable": true,
+      "expected_source": "shared-drive-access.md",
+      "retrieved_sources": [
+        "shared-drive-access.md",
+        "shared-drive-access.md",
+        "shared-drive-access.md",
+        "shared-drive-access.md"
+      ],
+      "top_score": 0.8485,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "drive-02",
+      "answerable": true,
+      "expected_source": "shared-drive-access.md",
+      "retrieved_sources": [
+        "shared-drive-access.md",
+        "shared-drive-access.md",
+        "shared-drive-access.md",
+        "shared-drive-access.md"
+      ],
+      "top_score": 0.7262,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "laptop-01",
+      "answerable": true,
+      "expected_source": "new-laptop-onboarding.md",
+      "retrieved_sources": [
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md",
+        "printer-issues.md"
+      ],
+      "top_score": 0.8045,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "laptop-02",
+      "answerable": true,
+      "expected_source": "new-laptop-onboarding.md",
+      "retrieved_sources": [
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md"
+      ],
+      "top_score": 0.7152,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "sw-01",
+      "answerable": true,
+      "expected_source": "software-request-process.md",
+      "retrieved_sources": [
+        "software-request-process.md",
+        "software-request-process.md",
+        "software-request-process.md",
+        "new-laptop-onboarding.md"
+      ],
+      "top_score": 0.7811,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "sw-02",
+      "answerable": true,
+      "expected_source": "software-request-process.md",
+      "retrieved_sources": [
+        "software-request-process.md",
+        "vpn-access.md",
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md"
+      ],
+      "top_score": 0.6619,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "sev-01",
+      "answerable": true,
+      "expected_source": "incident-severity-definitions.md",
+      "retrieved_sources": [
+        "incident-severity-definitions.md",
+        "incident-severity-definitions.md",
+        "incident-severity-definitions.md",
+        "incident-severity-definitions.md"
+      ],
+      "top_score": 0.8379,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "sev-02",
+      "answerable": true,
+      "expected_source": "incident-severity-definitions.md",
+      "retrieved_sources": [
+        "how-to-open-a-ticket.md",
+        "incident-severity-definitions.md",
+        "incident-severity-definitions.md",
+        "incident-severity-definitions.md"
+      ],
+      "top_score": 0.8585,
+      "rank": 2,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "mail-01",
+      "answerable": true,
+      "expected_source": "email-problems.md",
+      "retrieved_sources": [
+        "email-problems.md",
+        "email-problems.md",
+        "shared-drive-access.md",
+        "email-problems.md"
+      ],
+      "top_score": 0.7643,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "mail-02",
+      "answerable": true,
+      "expected_source": "email-problems.md",
+      "retrieved_sources": [
+        "email-problems.md",
+        "email-problems.md",
+        "email-problems.md",
+        "email-problems.md"
+      ],
+      "top_score": 0.7244,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "print-01",
+      "answerable": true,
+      "expected_source": "printer-issues.md",
+      "retrieved_sources": [
+        "printer-issues.md",
+        "printer-issues.md",
+        "printer-issues.md",
+        "printer-issues.md"
+      ],
+      "top_score": 0.778,
+      "rank": 1,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "ticket-01",
+      "answerable": true,
+      "expected_source": "how-to-open-a-ticket.md",
+      "retrieved_sources": [
+        "password-reset.md",
+        "how-to-open-a-ticket.md",
+        "mfa-issues.md",
+        "how-to-open-a-ticket.md"
+      ],
+      "top_score": 0.7611,
+      "rank": 2,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "na-01",
+      "answerable": false,
+      "expected_source": null,
+      "retrieved_sources": [
+        "new-laptop-onboarding.md",
+        "password-reset.md",
+        "password-reset.md",
+        "printer-issues.md"
+      ],
+      "top_score": 0.6643,
+      "rank": null,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "na-02",
+      "answerable": false,
+      "expected_source": null,
+      "retrieved_sources": [
+        "erp-access-error.md",
+        "erp-access-error.md",
+        "printer-issues.md",
+        "password-reset.md"
+      ],
+      "top_score": 0.5572,
+      "rank": null,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "na-03",
+      "answerable": false,
+      "expected_source": null,
+      "retrieved_sources": [
+        "printer-issues.md",
+        "printer-issues.md",
+        "printer-issues.md",
+        "printer-issues.md"
+      ],
+      "top_score": 0.6251,
+      "rank": null,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "na-04",
+      "answerable": false,
+      "expected_source": null,
+      "retrieved_sources": [
+        "password-reset.md",
+        "printer-issues.md",
+        "erp-access-error.md",
+        "new-laptop-onboarding.md"
+      ],
+      "top_score": 0.6486,
+      "rank": null,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    },
+    {
+      "id": "na-05",
+      "answerable": false,
+      "expected_source": null,
+      "retrieved_sources": [
+        "password-reset.md",
+        "erp-access-error.md",
+        "password-reset.md",
+        "erp-access-error.md"
+      ],
+      "top_score": 0.728,
+      "rank": null,
+      "outcome": null,
+      "answer": null,
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": null,
+      "error": null
+    }
+  ]
+}

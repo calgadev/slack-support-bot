@@ -139,7 +139,7 @@ All settings are environment variables (or `.env`). See [`.env.example`](.env.ex
 | `GEMINI_MAX_OUTPUT_TOKENS` | `1024` | Max output tokens per generation |
 | `KNOWLEDGE_BASE_DIR` | `knowledge_base` | Markdown source directory |
 | `RETRIEVAL_TOP_K` | `4` | Chunks returned per search |
-| `RETRIEVAL_MIN_SCORE` | `0.5` | Minimum cosine similarity for a chunk to be used |
+| `RETRIEVAL_MIN_SCORE` | `0.65` | Minimum cosine similarity for a chunk to be used |
 | `MAX_INPUT_CHARS` | `2000` | Longer messages are rejected |
 | `PENDING_ACTION_TTL_SECONDS` | `900` | How long a ticket draft can be confirmed |
 | `CLEANUP_INTERVAL_SECONDS` | `600` | How often expired drafts and event keys are purged |
@@ -188,7 +188,26 @@ Results are written to [`evals/results/latest.md`](evals/results/latest.md). Eva
 
 ### Results
 
-_Pending: the first run against the Gemini API has not been recorded yet._
+Retrieval (`gemini-embedding-2`, 768 dims, top-k 4, 2026-11-12):
+
+| Metric | Value |
+|---|---|
+| Retrieval hit@1 | 92% |
+| Retrieval hit@4 | 100% |
+
+`RETRIEVAL_MIN_SCORE` calibration (top retrieval score only):
+
+| Threshold | Answerable kept | Unanswerable blocked |
+|---|---|---|
+| 0.50 | 100% | 0% |
+| 0.60 | 100% | 20% |
+| **0.65 (default)** | **100%** | **60%** |
+| 0.70 | 92% | 80% |
+| 0.75 | 76% | 100% |
+
+The default of 0.65 is the highest threshold that keeps every answerable question. The margin is small: the lowest answerable questions (both in Portuguese) score 0.66, and one unanswerable question scores 0.664. The threshold is only the first filter. Unanswerable questions that pass it must still be refused by the model (`NO_ANSWER`, or no valid citation). The calibration uses the raw question as the query, while the bot lets the model write an English search query, which should help Portuguese questions.
+
+Answer correctness and refusal rates: _pending. The first full run hit the Gemini free-tier daily quota (HTTP 429) during a period of high demand (HTTP 503)._ See [`evals/results/latest.md`](evals/results/latest.md) for the per-question table.
 
 ## Known limitations
 

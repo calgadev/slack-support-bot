@@ -219,7 +219,11 @@ def render_markdown(
         "# Evaluation results",
         "",
         f"- Date: {meta['date']}",
-        f"- Generation model: `{meta['model']}` · Judge model: `{meta['judge_model']}`",
+        (
+            f"- Generation model: `{meta['model']}` · Judge model: `{meta['judge_model']}`"
+            if meta.get("generation", True)
+            else "- Generation and judge: skipped (`--retrieval-only`)"
+        ),
         f"- Embedding model: `{meta['embedding_model']}` ({meta['embedding_dim']} dims)",
         f"- RETRIEVAL_MIN_SCORE: {meta['min_score']} · top-k: {k}",
         f"- Golden set: {metrics['items']} questions ({metrics['answerable']} answerable, "
@@ -328,6 +332,7 @@ def main(argv: list[str] | None = None) -> int:
         "embedding_model": settings.gemini_embedding_model,
         "embedding_dim": settings.gemini_embedding_dim,
         "min_score": min_score,
+        "generation": not args.retrieval_only,
     }
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     (RESULTS_DIR / "latest.md").write_text(render_markdown(results, metrics, meta), "utf-8")
