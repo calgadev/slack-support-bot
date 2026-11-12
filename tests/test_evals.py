@@ -1,6 +1,7 @@
 """Offline checks of the eval harness. The real evaluation calls Gemini and is not run in CI."""
 
 from evals.run import (
+    DATASETS,
     GoldenItem,
     ItemResult,
     compute_metrics,
@@ -99,3 +100,17 @@ def test_metrics_and_report() -> None:
     }
     md = render_markdown(results, m, meta)
     assert "| Retrieval hit@4 | 67% |" in md and "same model family" in md
+
+
+def test_holdout_set_is_well_formed_and_disjoint_from_golden() -> None:
+    holdout = load_golden(DATASETS["holdout"][0])
+    golden = load_golden()
+    assert 8 <= len(holdout) <= 15
+    assert not {i.id for i in holdout} & {i.id for i in golden}
+    assert not {i.question for i in holdout} & {i.question for i in golden}
+    sources = {p.name for p in KB_DIR.glob("*.md")}
+    for item in holdout:
+        assert (
+            (item.expected_source in sources) if item.answerable else item.expected_source is None
+        )
+    assert any(not i.answerable for i in holdout)

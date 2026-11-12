@@ -13,7 +13,9 @@ Metrics:
 - false-refusal rate: answerable items that got "I don't know"
 - a RETRIEVAL_MIN_SCORE calibration table based on the top retrieval score
 
-Writes evals/results/latest.md and evals/results/latest.json.
+Writes evals/results/latest.md and latest.json. ``--set holdout`` evaluates
+evals/holdout.jsonl (questions written after the threshold was fixed, never used for
+tuning) and writes evals/results/holdout.md and holdout.json.
 """
 
 from __future__ import annotations
@@ -35,6 +37,11 @@ from support_bot.rag.store import Retriever
 
 EVALS_DIR = Path(__file__).resolve().parent
 GOLDEN_PATH = EVALS_DIR / "golden.jsonl"
+DATASETS = {
+    # name: (questions file, results file stem)
+    "golden": (GOLDEN_PATH, "latest"),
+    "holdout": (EVALS_DIR / "holdout.jsonl", "holdout"),
+}
 RESULTS_DIR = EVALS_DIR / "results"
 
 JUDGE_PROMPT = """\
@@ -216,7 +223,7 @@ def render_markdown(
 ) -> str:
     k = metrics["k"]
     lines = [
-        "# Evaluation results",
+        "# Evaluation results" + (f" ({meta['dataset']} set)" if "dataset" in meta else ""),
         "",
         f"- Date: {meta['date']}",
         (
@@ -286,6 +293,7 @@ def render_markdown(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run the golden-set evaluation.")
+    parser.add_argument("--set", choices=sorted(DATASETS), default="golden", help="question set")
     parser.add_argument("--retrieval-only", action="store_true", help="skip generation/judge")
     parser.add_argument("--limit", type=int, default=None, help="evaluate only N items")
     parser.add_argument("--k", type=int, default=None, help="top-k for retrieval metrics")
@@ -316,7 +324,8 @@ def main(argv: list[str] | None = None) -> int:
     retriever = Retriever(store, llm, settings.retrieval_top_k)
     orchestrator = None if args.retrieval_only else Orchestrator(llm, retriever, min_score)
 
-    items = load_golden()[: args.limit]
+    dataset_path, stem = DATASETS[args.set]
+    items = load_golden(dataset_path)[: args.limit]
     results: list[ItemResult] = []
     for n, item in enumerate(items, start=1):
         print(f"[{n}/{len(items)}] {item.id}", file=sys.stderr)
@@ -326,6 +335,7 @@ def main(argv: list[str] | None = None) -> int:
 
     metrics = compute_metrics(results, k)
     meta = {
+        "dataset": args.set,
         "date": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
         "model": settings.gemini_model,
         "judge_model": judge_model,
@@ -335,8 +345,8 @@ def main(argv: list[str] | None = None) -> int:
         "generation": not args.retrieval_only,
     }
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    (RESULTS_DIR / "latest.md").write_text(render_markdown(results, metrics, meta), "utf-8")
-    (RESULTS_DIR / "latest.json").write_text(
+    (RESULTS_DIR / f"{stem}.md").write_text(render_markdown(results, metrics, meta), "utf-8")
+    (RESULTS_DIR / f"{stem}.json").write_text(
         json.dumps(
             {"meta": meta, "metrics": metrics, "results": [asdict(r) for r in results]},
             indent=2,
@@ -345,7 +355,7 @@ def main(argv: list[str] | None = None) -> int:
         "utf-8",
     )
     print(render_markdown(results, metrics, meta).split("## RETRIEVAL_MIN_SCORE")[0])
-    print(f"Wrote {RESULTS_DIR / 'latest.md'}", file=sys.stderr)
+    print(f"Wrote {RESULTS_DIR / f'{stem}.md'}", file=sys.stderr)
     return 0
 
 
