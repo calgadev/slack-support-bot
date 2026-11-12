@@ -1,0 +1,25 @@
+services:
+  bot:
+    build: .
+    image: slack-support-bot:latest
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+    volumes:
+      - bot-data:/app/data
+    restart: unless-stopped
+
+  # One-off: docker compose run --rm ingest
+  ingest:
+    build: .
+    image: slack-support-bot:latest
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+    volumes:
+      - bot-data:/app/data
+    command: ["python", "-m", "support_bot.ingest"]
+    profiles: ["tools"]
+
+volumes:
+  bot-data:
