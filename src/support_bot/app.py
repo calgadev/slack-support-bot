@@ -18,8 +18,14 @@ from support_bot.llm.client import GeminiClient
 from support_bot.logging_setup import configure_logging, get_logger
 from support_bot.orchestrator import Orchestrator
 from support_bot.rag.store import Retriever, VectorStore
-from support_bot.slack.blocks import ACTION_TICKET_CANCEL, ACTION_TICKET_CONFIRM
+from support_bot.slack.blocks import (
+    ACTION_FEEDBACK_DOWN,
+    ACTION_FEEDBACK_UP,
+    ACTION_TICKET_CANCEL,
+    ACTION_TICKET_CONFIRM,
+)
 from support_bot.slack.handlers import ActionHandler, MessageHandler
+from support_bot.status import StatusService
 from support_bot.storage.db import Database
 
 log = get_logger(__name__)
@@ -45,10 +51,13 @@ class BotComponents:
     db: Database
 
 
-def build_app(settings: Settings) -> BotComponents:
+def build_app(settings: Settings, *, verify_token: bool = True) -> BotComponents:
     if settings.slack_bot_token is None:
         raise RuntimeError("SLACK_BOT_TOKEN is not set")
-    app = App(token=settings.slack_bot_token.get_secret_value())
+    app = App(
+        token=settings.slack_bot_token.get_secret_value(),
+        token_verification_enabled=verify_token,
+    )
     llm = build_llm(settings)
     store = VectorStore(
         settings.chroma_dir, settings.gemini_embedding_model, settings.gemini_embedding_dim
@@ -59,18 +68,29 @@ def build_app(settings: Settings) -> BotComponents:
     db = Database(settings.sqlite_path)
     retriever = Retriever(store, llm, settings.retrieval_top_k)
     orchestrator = Orchestrator(llm, retriever, settings.retrieval_min_score)
-    messages = MessageHandler(orchestrator, db, settings)
-    actions = ActionHandler(db)
+    status = StatusService(db, store.count, started_at=time.time())
+    messages = MessageHandler(orchestrator, db, settings, status)
+    actions = ActionHandler(db, settings)
 
     @app.event("app_mention")
-    def on_mention(event: dict[str, Any], client: Any, context: BoltContext) -> None:
-        messages.handle(event, client, context.bot_user_id)
+    def on_mention(
+        event: dict[str, Any], body: dict[str, Any], client: Any, context: BoltContext
+    ) -> None:
+        messages.handle(event, client, context.bot_user_id, body.get("event_id"))
 
     @app.event("message")
-    def on_message(event: dict[str, Any], client: Any, context: BoltContext) -> None:
+    def on_message(
+        event: dict[str, Any], body: dict[str, Any], client: Any, context: BoltContext
+    ) -> None:
         if event.get("channel_type") != "im":
             return
-        messages.handle(event, client, context.bot_user_id)
+        messages.handle(event, client, context.bot_user_id, body.get("event_id"))
+
+    @app.action(ACTION_FEEDBACK_UP)
+    @app.action(ACTION_FEEDBACK_DOWN)
+    def on_feedback(ack: Any, body: dict[str, Any], client: Any) -> None:
+        ack()
+        actions.handle_feedback(body, client)
 
     @app.action(ACTION_TICKET_CONFIRM)
     @app.action(ACTION_TICKET_CANCEL)
@@ -84,6 +104,8 @@ def build_app(settings: Settings) -> BotComponents:
 def run(settings: Settings) -> None:
     if settings.slack_app_token is None:
         raise RuntimeError("SLACK_APP_TOKEN is not set")
+    if settings.user_id_hash_salt.get_secret_value() == "change-me":
+        log.warning("default_user_id_hash_salt", hint="set USER_ID_HASH_SALT")
     components = build_app(settings)
     handler = SocketModeHandler(components.app, settings.slack_app_token.get_secret_value())
     stop = threading.Event()
@@ -106,7 +128,10 @@ def run(settings: Settings) -> None:
                 log.warning("socket_mode_disconnected")
             if time.monotonic() - last_cleanup >= settings.cleanup_interval_seconds:
                 try:
-                    log.info("cleanup_done", **components.db.cleanup_expired())
+                    removed = components.db.cleanup_expired(
+                        keep_events_seconds=settings.processed_event_ttl_seconds
+                    )
+                    log.info("cleanup_done", **removed)
                 except Exception:
                     log.exception("cleanup_failed")
                 last_cleanup = time.monotonic()

@@ -113,6 +113,11 @@ MESSAGES: dict[str, dict[Lang, str]] = {
         "en": "*Title:* {title}\n*Priority:* {priority}\n*Description:* {description}",
         "pt": "*Título:* {title}\n*Prioridade:* {priority}\n*Descrição:* {description}",
     },
+    "feedback_prompt": {"en": "Was this helpful?", "pt": "Isso ajudou?"},
+    "feedback_thanks": {
+        "en": "Thanks for the feedback!",
+        "pt": "Obrigado pelo feedback!",
+    },
     "btn_confirm": {"en": "Open ticket", "pt": "Abrir chamado"},
     "btn_cancel": {"en": "Cancel", "pt": "Cancelar"},
     "ticket_created": {

@@ -11,6 +11,8 @@ Block = dict[str, Any]
 
 ACTION_TICKET_CONFIRM = "ticket_confirm"
 ACTION_TICKET_CANCEL = "ticket_cancel"
+ACTION_FEEDBACK_UP = "feedback_up"
+ACTION_FEEDBACK_DOWN = "feedback_down"
 
 _SECTION_LIMIT = 3000  # Slack limit for a section's text
 
@@ -24,6 +26,49 @@ def section(text: str) -> Block:
     if len(text) > _SECTION_LIMIT:
         text = text[: _SECTION_LIMIT - 1] + "…"
     return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
+
+
+def text_sections(text: str) -> list[Block]:
+    """Split long text into several sections, breaking on line boundaries."""
+    blocks: list[Block] = []
+    current = ""
+    for line in text.split("\n"):
+        candidate = f"{current}\n{line}" if current else line
+        if len(candidate) > _SECTION_LIMIT and current:
+            blocks.append(section(current))
+            current = line
+        else:
+            current = candidate
+    if current:
+        blocks.append(section(current))
+    return blocks
+
+
+def feedback_blocks(request_id: str, lang: Lang) -> list[Block]:
+    return [
+        {
+            "type": "context",
+            "elements": [{"type": "mrkdwn", "text": t("feedback_prompt", lang)}],
+        },
+        {
+            "type": "actions",
+            "block_id": "feedback",
+            "elements": [
+                {
+                    "type": "button",
+                    "action_id": ACTION_FEEDBACK_UP,
+                    "text": {"type": "plain_text", "text": ":+1:", "emoji": True},
+                    "value": request_id,
+                },
+                {
+                    "type": "button",
+                    "action_id": ACTION_FEEDBACK_DOWN,
+                    "text": {"type": "plain_text", "text": ":-1:", "emoji": True},
+                    "value": request_id,
+                },
+            ],
+        },
+    ]
 
 
 def ticket_confirmation_blocks(

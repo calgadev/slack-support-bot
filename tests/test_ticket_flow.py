@@ -2,6 +2,7 @@
 
 import pytest
 
+from support_bot.config import Settings
 from support_bot.slack.handlers import ActionHandler
 from support_bot.storage.db import Database
 from tests.fakes import FakeSlackClient
@@ -54,7 +55,7 @@ def click(handler: ActionHandler, slack, pending_id: str, action: str, user: str
 
 def test_confirm_creates_exactly_one_ticket(db: Database) -> None:
     pending = draft(db)
-    handler, slack = ActionHandler(db), FakeSlackClient()
+    handler, slack = ActionHandler(db, Settings()), FakeSlackClient()
     click(handler, slack, pending.id, "ticket_confirm")
     click(handler, slack, pending.id, "ticket_confirm")  # double click / retry
     assert db.count_tickets() == 1
@@ -65,7 +66,7 @@ def test_confirm_creates_exactly_one_ticket(db: Database) -> None:
 
 def test_cancel_creates_nothing(db: Database) -> None:
     pending = draft(db)
-    handler, slack = ActionHandler(db), FakeSlackClient()
+    handler, slack = ActionHandler(db, Settings()), FakeSlackClient()
     click(handler, slack, pending.id, "ticket_cancel")
     click(handler, slack, pending.id, "ticket_confirm")
     assert db.count_tickets() == 0
@@ -75,7 +76,7 @@ def test_cancel_creates_nothing(db: Database) -> None:
 def test_expired_draft_cannot_be_confirmed(db: Database, clock: Clock) -> None:
     pending = draft(db, ttl=60)
     clock.now += 61
-    handler, slack = ActionHandler(db), FakeSlackClient()
+    handler, slack = ActionHandler(db, Settings()), FakeSlackClient()
     click(handler, slack, pending.id, "ticket_confirm")
     assert db.count_tickets() == 0
     assert "expired" in slack.updated[0]["text"]
@@ -84,7 +85,7 @@ def test_expired_draft_cannot_be_confirmed(db: Database, clock: Clock) -> None:
 
 def test_only_requester_can_confirm(db: Database) -> None:
     pending = draft(db, user="U1")
-    handler, slack = ActionHandler(db), FakeSlackClient()
+    handler, slack = ActionHandler(db, Settings()), FakeSlackClient()
     click(handler, slack, pending.id, "ticket_confirm", user="U2")
     assert db.count_tickets() == 0
     assert slack.ephemeral[0]["user"] == "U2"
@@ -92,7 +93,7 @@ def test_only_requester_can_confirm(db: Database) -> None:
 
 
 def test_unknown_draft(db: Database) -> None:
-    handler, slack = ActionHandler(db), FakeSlackClient()
+    handler, slack = ActionHandler(db, Settings()), FakeSlackClient()
     click(handler, slack, "does-not-exist", "ticket_confirm")
     assert "couldn't find" in slack.updated[0]["text"]
 
@@ -112,7 +113,7 @@ def test_cleanup_removes_expired_and_old_resolved(db: Database, clock: Clock) ->
     db.cancel_pending_action(resolved.id)
     alive = draft(db, ttl=10_000)
     clock.now += 120
-    assert db.cleanup_expired(keep_resolved_seconds=3600) == {"pending_actions": 1}
+    assert db.cleanup_expired(keep_resolved_seconds=3600)["pending_actions"] == 1
     assert db.get_pending_action(expired.id) is None
     assert db.get_pending_action(resolved.id) is not None
     clock.now += 3600

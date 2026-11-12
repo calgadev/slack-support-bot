@@ -42,8 +42,12 @@ class Settings(BaseSettings):
     # Storage
     data_dir: Path = Path("data")
 
-    # Logging
+    # Logging and privacy
     log_level: str = "INFO"
+    user_id_hash_salt: SecretStr = SecretStr("change-me")
+
+    # Slack event de-duplication window
+    processed_event_ttl_seconds: int = Field(default=86400, ge=600)
 
     # Health
     heartbeat_interval_seconds: int = Field(default=30, ge=1)
