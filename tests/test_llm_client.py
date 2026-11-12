@@ -57,6 +57,7 @@ def test_does_not_retry_client_errors() -> None:
     with pytest.raises(LLMError) as info:
         client.generate(user("q"), system_instruction="s")
     assert info.value.status == 400 and not info.value.retryable
+    assert "bad request" in str(info.value)  # API message kept for diagnosis
     assert client._client.models.generate_content.call_count == 1
 
 

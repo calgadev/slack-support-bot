@@ -135,7 +135,8 @@ class Orchestrator:
                     parts.append(self._search(call, result, sources))
                 else:
                     parts.append(self._tool_error(call, result, f"unknown tool {call.name}"))
-            contents.append(types.Content(role="tool", parts=parts))
+            # Function responses go back in a "user" turn; the API rejects role="tool".
+            contents.append(types.Content(role="user", parts=parts))
 
         log.warning("max_tool_steps_reached", steps=self.max_steps)
         return result

@@ -101,6 +101,11 @@ def _is_retryable(exc: BaseException) -> bool:
     return isinstance(exc, TRANSPORT_ERRORS)
 
 
+def _api_message(exc: genai_errors.APIError) -> str:
+    """Short, single-line API error message for logs and the requests table."""
+    return " ".join(str(exc.message or exc.status or "").split())[:300]
+
+
 def _log_retry(state: RetryCallState) -> None:
     exc = state.outcome.exception() if state.outcome else None
     log.warning(
@@ -179,7 +184,9 @@ class GeminiClient:
             )
         except genai_errors.APIError as exc:
             raise LLMError(
-                f"Gemini API error {exc.code}", retryable=_is_retryable(exc), status=exc.code
+                f"Gemini API error {exc.code}: {_api_message(exc)}",
+                retryable=_is_retryable(exc),
+                status=exc.code,
             ) from exc
         except TRANSPORT_ERRORS as exc:
             raise LLMError(f"Gemini transport error: {type(exc).__name__}", retryable=True) from exc
@@ -197,7 +204,9 @@ class GeminiClient:
             )
         except genai_errors.APIError as exc:
             raise LLMError(
-                f"Gemini embedding error {exc.code}", retryable=_is_retryable(exc), status=exc.code
+                f"Gemini embedding error {exc.code}: {_api_message(exc)}",
+                retryable=_is_retryable(exc),
+                status=exc.code,
             ) from exc
         except TRANSPORT_ERRORS as exc:
             raise LLMError(f"Gemini transport error: {type(exc).__name__}", retryable=True) from exc

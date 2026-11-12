@@ -61,7 +61,8 @@ def test_history_keeps_model_turn_and_tool_response() -> None:
     orch, llm, _ = make([chunk(1, 0.9)], [search(), text_response("A [1].")])
     orch.answer("q")
     second_call = llm.calls[1]["contents"]
-    assert [c.role for c in second_call] == ["user", "model", "tool"]
+    # The Gemini API rejects role="tool" (HTTP 400); function responses use "user".
+    assert [c.role for c in second_call] == ["user", "model", "user"]
     assert second_call[1].parts[0].function_call.name == "search_docs"
     tool_part = second_call[2].parts[0].function_response
     assert tool_part.id == "call-search_docs"
