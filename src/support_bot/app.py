@@ -42,6 +42,7 @@ def build_llm(settings: Settings) -> GeminiClient:
         timeout_seconds=settings.gemini_timeout_seconds,
         max_attempts=settings.gemini_max_attempts,
         max_output_tokens=settings.gemini_max_output_tokens,
+        max_retry_delay=settings.gemini_max_retry_delay_seconds,
     )
 
 

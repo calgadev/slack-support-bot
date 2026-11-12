@@ -6,7 +6,9 @@ Only this module talks to the Gemini API. The rest of the code depends on the
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+import re
+import time
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
@@ -49,12 +51,69 @@ TRANSPORT_ERRORS = _transport_errors()
 
 
 class LLMError(Exception):
-    """Raised when the LLM call fails after all retries. Safe to show a generic message."""
+    """Raised when the LLM call fails after all retries. Safe to show a generic message.
 
-    def __init__(self, message: str, *, retryable: bool = False, status: int | None = None):
+    ``quota_exhausted`` is True for a daily quota (retrying today will not help) and
+    ``retry_after`` holds the server's suggested delay in seconds, when it sent one.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        retryable: bool = False,
+        status: int | None = None,
+        quota_exhausted: bool = False,
+        retry_after: float | None = None,
+    ):
         super().__init__(message)
         self.retryable = retryable
         self.status = status
+        self.quota_exhausted = quota_exhausted
+        self.retry_after = retry_after
+
+
+@dataclass(frozen=True)
+class QuotaInfo:
+    """What a 429 RESOURCE_EXHAUSTED response says about the exceeded quota."""
+
+    retry_delay: float | None
+    """Seconds from ``google.rpc.RetryInfo.retryDelay`` (e.g. "37s"), if present."""
+    daily: bool
+    """True when a violated quota is per day (e.g. GenerateRequestsPerDay...)."""
+    quota_ids: tuple[str, ...] = ()
+
+
+_DURATION = re.compile(r"^\s*(\d+(?:\.\d+)?)s\s*$")
+
+
+def _parse_duration(value: Any) -> float | None:
+    """Parse a protobuf Duration string such as "37s" or "1.5s"."""
+    match = _DURATION.match(str(value or ""))
+    return float(match.group(1)) if match else None
+
+
+def parse_quota_error(exc: genai_errors.APIError) -> QuotaInfo | None:
+    """Read RetryInfo and QuotaFailure details from a 429 error. None for other errors."""
+    if exc.code != 429:
+        return None
+    body = exc.details if isinstance(exc.details, dict) else {}
+    error = body.get("error", body)
+    details = error.get("details", []) if isinstance(error, dict) else []
+    retry_delay: float | None = None
+    quota_ids: list[str] = []
+    for detail in details if isinstance(details, list) else []:
+        if not isinstance(detail, dict):
+            continue
+        kind = str(detail.get("@type", ""))
+        if kind.endswith("google.rpc.RetryInfo"):
+            retry_delay = _parse_duration(detail.get("retryDelay"))
+        elif kind.endswith("google.rpc.QuotaFailure"):
+            for violation in detail.get("violations", []) or []:
+                if isinstance(violation, dict) and violation.get("quotaId"):
+                    quota_ids.append(str(violation["quotaId"]))
+    daily = any("perday" in q.lower() for q in quota_ids)
+    return QuotaInfo(retry_delay=retry_delay, daily=daily, quota_ids=tuple(quota_ids))
 
 
 @dataclass(frozen=True)
@@ -95,10 +154,32 @@ class LLMClient(Protocol):
         ...
 
 
-def _is_retryable(exc: BaseException) -> bool:
+def _is_retryable(exc: BaseException, max_retry_delay: float = float("inf")) -> bool:
+    """Retry transient errors, except quotas that will not recover soon.
+
+    A 429 is not retried when the daily quota is exhausted, or when the server asks us
+    to wait longer than ``max_retry_delay`` (a user in Slack should not wait that long).
+    """
     if isinstance(exc, genai_errors.APIError):
+        quota = parse_quota_error(exc)
+        if quota is not None:
+            if quota.daily:
+                return False
+            if quota.retry_delay is not None and quota.retry_delay > max_retry_delay:
+                return False
         return exc.code in RETRYABLE_STATUS
     return isinstance(exc, TRANSPORT_ERRORS)
+
+
+def _to_llm_error(exc: genai_errors.APIError, what: str, max_retry_delay: float) -> LLMError:
+    quota = parse_quota_error(exc)
+    return LLMError(
+        f"Gemini {what} error {exc.code}: {_api_message(exc)}",
+        retryable=_is_retryable(exc, max_retry_delay),
+        status=exc.code,
+        quota_exhausted=bool(quota and quota.daily),
+        retry_after=quota.retry_delay if quota else None,
+    )
 
 
 def _api_message(exc: genai_errors.APIError) -> str:
@@ -108,9 +189,11 @@ def _api_message(exc: genai_errors.APIError) -> str:
 
 def _log_retry(state: RetryCallState) -> None:
     exc = state.outcome.exception() if state.outcome else None
+    sleep = state.next_action.sleep if state.next_action else None
     log.warning(
         "llm_retry",
         attempt=state.attempt_number,
+        sleep_seconds=round(sleep, 2) if sleep is not None else None,
         error_type=type(exc).__name__ if exc else None,
         error=str(exc)[:300] if exc else None,
     )
@@ -128,6 +211,8 @@ class GeminiClient:
         max_attempts: int,
         max_output_tokens: int = 1024,
         retry_initial_wait: float = 1.0,
+        max_retry_delay: float = 60.0,
+        sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self.model = model
         self.embedding_model = embedding_model
@@ -138,14 +223,27 @@ class GeminiClient:
             api_key=api_key,
             http_options=types.HttpOptions(timeout=int(timeout_seconds * 1000)),
         )
+        self.max_retry_delay = max_retry_delay
+        backoff = wait_exponential_jitter(
+            initial=retry_initial_wait, max=10, jitter=retry_initial_wait
+        )
+
+        def wait(state: RetryCallState) -> float:
+            # Honor the server's RetryInfo delay on 429s; otherwise exponential backoff.
+            exc = state.outcome.exception() if state.outcome else None
+            if isinstance(exc, genai_errors.APIError):
+                quota = parse_quota_error(exc)
+                if quota is not None and quota.retry_delay is not None:
+                    return quota.retry_delay
+            return backoff(state)
+
         self._retry = retry(
             reraise=True,
             stop=stop_after_attempt(max_attempts),
-            wait=wait_exponential_jitter(
-                initial=retry_initial_wait, max=10, jitter=retry_initial_wait
-            ),
-            retry=retry_if_exception(_is_retryable),
+            wait=wait,
+            retry=retry_if_exception(lambda e: _is_retryable(e, self.max_retry_delay)),
             before_sleep=_log_retry,
+            sleep=sleep,
         )
 
     def generate(
@@ -183,11 +281,7 @@ class GeminiClient:
                 model=self.model, contents=list(contents), config=config
             )
         except genai_errors.APIError as exc:
-            raise LLMError(
-                f"Gemini API error {exc.code}: {_api_message(exc)}",
-                retryable=_is_retryable(exc),
-                status=exc.code,
-            ) from exc
+            raise _to_llm_error(exc, "API", self.max_retry_delay) from exc
         except TRANSPORT_ERRORS as exc:
             raise LLMError(f"Gemini transport error: {type(exc).__name__}", retryable=True) from exc
         return _to_llm_response(response, self.model)
@@ -203,11 +297,7 @@ class GeminiClient:
                 model=self.embedding_model, contents=contents, config=config
             )
         except genai_errors.APIError as exc:
-            raise LLMError(
-                f"Gemini embedding error {exc.code}: {_api_message(exc)}",
-                retryable=_is_retryable(exc),
-                status=exc.code,
-            ) from exc
+            raise _to_llm_error(exc, "embedding", self.max_retry_delay) from exc
         except TRANSPORT_ERRORS as exc:
             raise LLMError(f"Gemini transport error: {type(exc).__name__}", retryable=True) from exc
         vectors = [list(e.values or []) for e in (result.embeddings or [])]

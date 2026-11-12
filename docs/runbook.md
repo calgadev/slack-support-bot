@@ -93,7 +93,8 @@ The Gemini call failed after all retries. Check the `request_completed` logs: th
 
 | Status | Meaning | Action |
 |---|---|---|
-| 429 | Quota or rate limit | Wait, or raise the quota in Google AI Studio |
+| 429, per minute | Rate limit | Retried automatically after the server's `retryDelay` (up to `GEMINI_MAX_RETRY_DELAY_SECONDS`) |
+| 429, per day | Daily quota exhausted (`outcome = quota_exhausted` in `requests`) | Not retried; users get a "daily limit" reply with a ticket draft. Wait for the reset, use another model with its own quota, or enable billing |
 | 400 / 404 | Bad request or unknown model | Check `GEMINI_MODEL` against the current model list |
 | 401 / 403 | Invalid or restricted API key | Rotate `GEMINI_API_KEY` |
 | 5xx / timeout | Provider issue | Retried automatically; tune `GEMINI_TIMEOUT_SECONDS` / `GEMINI_MAX_ATTEMPTS` |

@@ -143,7 +143,12 @@ class MessageHandler:
                 answer = self.orchestrator.answer(text)
             except LLMError as exc:
                 error = f"LLMError: {exc} (status={exc.status})"
-                post(t("llm_error", lang))
+                if exc.quota_exhausted:
+                    outcome = "quota_exhausted"
+                    log.error("llm_quota_exhausted", retry_after=exc.retry_after)
+                # Ticket drafts need no LLM, so the user can still reach the Service Desk.
+                intro = t("quota_exhausted" if exc.quota_exhausted else "llm_error", lang)
+                self._offer_ticket(draft_from_question(text), intro, event, request_id, lang, post)
                 return
             outcome = answer.outcome
             self._reply(answer, text, event, request_id, lang, post)
@@ -206,6 +211,19 @@ class MessageHandler:
             feedback = []  # nothing to rate yet
         else:
             draft, intro = draft_from_question(question), t("low_confidence", lang)
+        self._offer_ticket(draft, intro, event, request_id, lang, post, feedback)
+
+    def _offer_ticket(
+        self,
+        draft: TicketDraft,
+        intro: str,
+        event: dict[str, Any],
+        request_id: str,
+        lang: Lang,
+        post: Callable[..., None],
+        extra_blocks: list[dict[str, Any]] | None = None,
+    ) -> None:
+        """Post a ticket draft with Confirm / Cancel buttons (stored as a pending action)."""
         pending = self.db.create_pending_action(
             action="create_ticket",
             payload={**draft.to_payload(), "lang": lang},
@@ -215,7 +233,8 @@ class MessageHandler:
             request_id=request_id,
             ttl_seconds=self.settings.pending_action_ttl_seconds,
         )
-        post(intro, [*ticket_confirmation_blocks(intro, draft, pending.id, lang), *feedback])
+        blocks = ticket_confirmation_blocks(intro, draft, pending.id, lang)
+        post(intro, [*blocks, *(extra_blocks or [])])
 
 
 class ActionHandler:

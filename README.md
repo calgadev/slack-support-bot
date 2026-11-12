@@ -15,7 +15,7 @@ It is a portfolio project focused on production-minded engineering: grounded ans
 - **Human-in-the-loop tickets**: `create_ticket` only drafts. The ticket is written to SQLite only after the requester clicks **Confirm**. Drafts expire, and double clicks cannot create duplicates.
 - **Feedback**: every answer has 👍 / 👎 buttons, stored per request.
 - **`status` command**: uptime, indexed chunks, and request count, error count and average latency over the last 24 hours.
-- **Reliability**: timeouts and exponential-backoff retries on Gemini calls, friendly error messages, de-duplication of Slack retries and duplicate events, a heartbeat-based Docker healthcheck.
+- **Reliability**: timeouts and exponential-backoff retries on Gemini calls. On a 429 the bot waits for the server's `retryDelay` and gives up at once when the daily quota is exhausted. Error replies still offer a ticket draft (no LLM needed). Also: de-duplication of Slack retries and duplicate events, a heartbeat-based Docker healthcheck.
 - **Observability**: JSON logs with request id, hashed user id, latency, model, tokens, retrieved chunk ids and scores, tool calls and errors, persisted to a `requests` table.
 - **Evaluation**: a 30-question golden set with retrieval hit@k, LLM-as-judge correctness, citation accuracy and refusal rates.
 
@@ -136,6 +136,7 @@ All settings are environment variables (or `.env`). See [`.env.example`](.env.ex
 | `GEMINI_EMBEDDING_DIM` | `768` | Embedding dimension (128 to 3072) |
 | `GEMINI_TIMEOUT_SECONDS` | `30` | Timeout per Gemini request |
 | `GEMINI_MAX_ATTEMPTS` | `4` | Attempts for retryable errors (408, 429, 5xx, network) |
+| `GEMINI_MAX_RETRY_DELAY_SECONDS` | `60` | Longest server-requested wait (`RetryInfo`) to honor on a 429. Longer delays, and any daily-quota 429, fail at once |
 | `GEMINI_MAX_OUTPUT_TOKENS` | `1024` | Max output tokens per generation |
 | `KNOWLEDGE_BASE_DIR` | `knowledge_base` | Markdown source directory |
 | `RETRIEVAL_TOP_K` | `4` | Chunks returned per search |

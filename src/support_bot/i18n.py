@@ -91,9 +91,15 @@ _WORD = re.compile(r"[\wçãõáéíóúâêô']+", re.IGNORECASE)
 MESSAGES: dict[str, dict[Lang, str]] = {
     "llm_error": {
         "en": "Sorry, I'm having trouble reaching the AI service right now. Please try again in a "
-        "few minutes, or ask me to open a ticket.",
+        "few minutes, or open a ticket with the draft below.",
         "pt": "Desculpe, estou com dificuldade para acessar o serviço de IA agora. Tente novamente "
-        "em alguns minutos ou peça para eu abrir um chamado.",
+        "em alguns minutos ou abra um chamado com o rascunho abaixo.",
+    },
+    "quota_exhausted": {
+        "en": "Sorry, I've reached my daily limit for the AI service, so I can't answer questions "
+        "until it resets. You can still open a ticket with the draft below.",
+        "pt": "Desculpe, atingi o limite diário do serviço de IA e não consigo responder perguntas "
+        "até ele ser renovado. Você ainda pode abrir um chamado com o rascunho abaixo.",
     },
     "internal_error": {
         "en": "Sorry, something went wrong on my side. The error was logged.",

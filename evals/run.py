@@ -98,6 +98,8 @@ class ItemResult:
     judge_reason: str | None = None
     latency_ms: int | None = None
     error: str | None = None
+    quota_exhausted: bool = False
+    """The daily Gemini quota ran out on this item; the run should stop."""
 
 
 def load_golden(path: Path = GOLDEN_PATH) -> list[GoldenItem]:
@@ -146,6 +148,7 @@ def evaluate_item(
         answer = orchestrator.answer(item.question)
     except LLMError as exc:
         result.error = str(exc)
+        result.quota_exhausted = exc.quota_exhausted
         return result
     result.latency_ms = int((time.perf_counter() - started) * 1000)
     result.outcome = answer.outcome
@@ -156,7 +159,36 @@ def evaluate_item(
             result.judge_score, result.judge_reason = judge(judge_llm, item, answer.text)
         except (LLMError, ValueError, KeyError) as exc:
             result.error = f"judge failed: {exc}"
+            result.quota_exhausted = getattr(exc, "quota_exhausted", False)
     return result
+
+
+def run_items(
+    items: list[GoldenItem],
+    retriever: Retriever,
+    k: int,
+    orchestrator: Orchestrator | None,
+    judge_llm: LLMClient | None,
+    delay: float = 0.0,
+    sleep: Any = time.sleep,
+) -> tuple[list[ItemResult], str | None]:
+    """Evaluate items in order. Stops early, with a reason, if the daily quota runs out."""
+    results: list[ItemResult] = []
+    for n, item in enumerate(items, start=1):
+        print(f"[{n}/{len(items)}] {item.id}", file=sys.stderr)
+        result = evaluate_item(item, retriever, k, orchestrator, judge_llm)
+        results.append(result)
+        if result.quota_exhausted:
+            # Every remaining question would fail the same way; stop and keep what we have.
+            reason = (
+                f"Stopped after {n} of {len(items)} questions: the daily Gemini quota is "
+                "exhausted. Metrics below cover only the questions that ran."
+            )
+            print(f"ERROR: {reason}", file=sys.stderr)
+            return results, reason
+        if delay and n < len(items):
+            sleep(delay)
+    return results, None
 
 
 def _rate(numerator: int, denominator: int) -> float | None:
@@ -233,9 +265,10 @@ def render_markdown(
         ),
         f"- Embedding model: `{meta['embedding_model']}` ({meta['embedding_dim']} dims)",
         f"- RETRIEVAL_MIN_SCORE: {meta['min_score']} · top-k: {k}",
-        f"- Golden set: {metrics['items']} questions ({metrics['answerable']} answerable, "
+        f"- Questions: {metrics['items']} ({metrics['answerable']} answerable, "
         f"{metrics['unanswerable']} unanswerable)",
         "",
+        *([f"> **Incomplete run.** {meta['aborted']}", ""] if meta.get("aborted") else []),
         "## Summary",
         "",
         "| Metric | Value |",
@@ -326,12 +359,7 @@ def main(argv: list[str] | None = None) -> int:
 
     dataset_path, stem = DATASETS[args.set]
     items = load_golden(dataset_path)[: args.limit]
-    results: list[ItemResult] = []
-    for n, item in enumerate(items, start=1):
-        print(f"[{n}/{len(items)}] {item.id}", file=sys.stderr)
-        results.append(evaluate_item(item, retriever, k, orchestrator, judge_llm))
-        if args.delay and n < len(items):
-            time.sleep(args.delay)
+    results, aborted = run_items(items, retriever, k, orchestrator, judge_llm, args.delay)
 
     metrics = compute_metrics(results, k)
     meta = {
@@ -343,6 +371,7 @@ def main(argv: list[str] | None = None) -> int:
         "embedding_dim": settings.gemini_embedding_dim,
         "min_score": min_score,
         "generation": not args.retrieval_only,
+        "aborted": aborted,
     }
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     (RESULTS_DIR / f"{stem}.md").write_text(render_markdown(results, metrics, meta), "utf-8")
@@ -356,7 +385,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(render_markdown(results, metrics, meta).split("## RETRIEVAL_MIN_SCORE")[0])
     print(f"Wrote {RESULTS_DIR / f'{stem}.md'}", file=sys.stderr)
-    return 0
+    return 3 if aborted else 0
 
 
 if __name__ == "__main__":

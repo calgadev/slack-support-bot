@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     gemini_embedding_dim: int = Field(default=768, ge=128, le=3072)
     gemini_timeout_seconds: float = Field(default=30.0, gt=0)
     gemini_max_attempts: int = Field(default=4, ge=1)
+    gemini_max_retry_delay_seconds: float = Field(default=60.0, ge=0)
+    """Longest server-requested 429 wait (RetryInfo) to honor before giving up."""
     gemini_max_output_tokens: int = Field(default=1024, ge=64)
 
     # Input guardrails
