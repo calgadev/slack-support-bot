@@ -84,7 +84,7 @@ class FakeLLM:
         self._embedder = embedder or bag_of_words
 
     def generate(
-        self, contents, *, system_instruction, tools=None, force_tool=False
+        self, contents, *, system_instruction, tools=None, force_tool=False, json_schema=None
     ) -> LLMResponse:
         self.calls.append(
             {

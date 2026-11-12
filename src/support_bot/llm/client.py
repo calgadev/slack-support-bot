@@ -68,6 +68,7 @@ class LLMClient(Protocol):
         system_instruction: str,
         tools: Sequence[types.Tool] | None = None,
         force_tool: bool = False,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse: ...
 
     def embed(self, texts: Sequence[str]) -> list[list[float]]:
@@ -130,8 +131,13 @@ class GeminiClient:
         system_instruction: str,
         tools: Sequence[types.Tool] | None = None,
         force_tool: bool = False,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
-        """Generate a reply. ``force_tool`` makes the model call one of the tools (mode ANY)."""
+        """Generate a reply.
+
+        ``force_tool`` makes the model call one of the tools (mode ANY). ``json_schema``
+        requests structured JSON output (used by the eval judge).
+        """
         tool_config = None
         if tools and force_tool:
             tool_config = types.ToolConfig(
@@ -143,6 +149,8 @@ class GeminiClient:
             system_instruction=system_instruction,
             tools=list(tools) if tools else None,
             tool_config=tool_config,
+            response_mime_type="application/json" if json_schema else None,
+            response_json_schema=json_schema,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             max_output_tokens=self.max_output_tokens,
         )

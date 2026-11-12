@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     # Gemini
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-3.8-flash"
+    gemini_judge_model: str | None = None
+    """Model used by the eval judge; defaults to GEMINI_MODEL."""
     gemini_embedding_model: str = "gemini-embedding-2"
     gemini_embedding_dim: int = Field(default=768, ge=128, le=3072)
     gemini_timeout_seconds: float = Field(default=30.0, gt=0)
