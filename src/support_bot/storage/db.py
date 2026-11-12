@@ -49,6 +49,38 @@ MIGRATIONS: list[str] = [
     );
     CREATE INDEX idx_pending_expires ON pending_actions (expires_at);
     """,
+    # 2: observability (requests), answer feedback and event de-duplication
+    """
+    CREATE TABLE requests (
+        id             TEXT PRIMARY KEY,
+        created_at     REAL NOT NULL,
+        user_hash      TEXT NOT NULL,
+        channel_id     TEXT NOT NULL,
+        lang           TEXT,
+        outcome        TEXT NOT NULL,
+        model          TEXT,
+        latency_ms     INTEGER NOT NULL,
+        input_tokens   INTEGER NOT NULL DEFAULT 0,
+        output_tokens  INTEGER NOT NULL DEFAULT 0,
+        llm_calls      INTEGER NOT NULL DEFAULT 0,
+        retrieved      TEXT NOT NULL DEFAULT '[]',
+        tool_calls     TEXT NOT NULL DEFAULT '[]',
+        error          TEXT
+    );
+    CREATE INDEX idx_requests_created ON requests (created_at);
+    CREATE TABLE feedback (
+        request_id  TEXT NOT NULL REFERENCES requests (id) ON DELETE CASCADE,
+        user_hash   TEXT NOT NULL,
+        rating      TEXT NOT NULL CHECK (rating IN ('up', 'down')),
+        created_at  REAL NOT NULL,
+        PRIMARY KEY (request_id, user_hash)
+    );
+    CREATE TABLE processed_events (
+        key         TEXT PRIMARY KEY,
+        created_at  REAL NOT NULL
+    );
+    CREATE INDEX idx_processed_created ON processed_events (created_at);
+    """,
 ]
 
 PendingStatus = Literal["pending", "confirmed", "cancelled", "expired"]
@@ -66,6 +98,30 @@ class PendingAction:
     status: PendingStatus
     created_at: float
     expires_at: float
+
+
+@dataclass(frozen=True)
+class RequestRecord:
+    id: str
+    user_hash: str
+    channel_id: str
+    outcome: str
+    latency_ms: int
+    lang: str | None = None
+    model: str | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+    llm_calls: int = 0
+    retrieved: list[dict[str, Any]] | None = None
+    tool_calls: list[dict[str, Any]] | None = None
+    error: str | None = None
+
+
+@dataclass(frozen=True)
+class RequestStats:
+    requests: int
+    errors: int
+    avg_latency_ms: float | None
 
 
 @dataclass(frozen=True)
@@ -240,10 +296,90 @@ class Database:
     def count_tickets(self) -> int:
         return int(self.query("SELECT COUNT(*) FROM tickets")[0][0])
 
+    # -- event de-duplication -------------------------------------------------------
+
+    def claim_event(self, keys: list[str]) -> bool:
+        """Record that an event was seen. Returns False if any key was already processed.
+
+        Use several keys per message (Slack ``event_id`` and ``channel:ts``) so retries and
+        the app_mention + message.im pair for the same message are handled once.
+        """
+        keys = [k for k in keys if k]
+        if not keys:
+            return True
+        with self.transaction() as conn:
+            placeholders = ",".join("?" for _ in keys)
+            seen = conn.execute(
+                f"SELECT 1 FROM processed_events WHERE key IN ({placeholders}) LIMIT 1", keys
+            ).fetchone()
+            if seen:
+                return False
+            now = self.clock()
+            conn.executemany(
+                "INSERT INTO processed_events (key, created_at) VALUES (?, ?)",
+                [(k, now) for k in keys],
+            )
+        return True
+
+    # -- requests and feedback --------------------------------------------------------
+
+    def record_request(self, record: RequestRecord) -> None:
+        with self.transaction() as conn:
+            conn.execute(
+                "INSERT INTO requests (id, created_at, user_hash, channel_id, lang, outcome, model,"
+                " latency_ms, input_tokens, output_tokens, llm_calls, retrieved, tool_calls, error)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    record.id,
+                    self.clock(),
+                    record.user_hash,
+                    record.channel_id,
+                    record.lang,
+                    record.outcome,
+                    record.model,
+                    record.latency_ms,
+                    record.input_tokens,
+                    record.output_tokens,
+                    record.llm_calls,
+                    json.dumps(record.retrieved or []),
+                    json.dumps(record.tool_calls or []),
+                    record.error,
+                ),
+            )
+
+    def request_stats(self, since_seconds: float = 24 * 3600) -> RequestStats:
+        row = self.query(
+            "SELECT COUNT(*) AS n, SUM(CASE WHEN outcome = 'error' THEN 1 ELSE 0 END) AS errors,"
+            " AVG(latency_ms) AS avg_latency FROM requests WHERE created_at >= ?",
+            (self.clock() - since_seconds,),
+        )[0]
+        return RequestStats(
+            requests=int(row["n"] or 0),
+            errors=int(row["errors"] or 0),
+            avg_latency_ms=float(row["avg_latency"]) if row["avg_latency"] is not None else None,
+        )
+
+    def record_feedback(self, request_id: str, user_hash: str, rating: str) -> bool:
+        """Store (or change) a user's rating of an answer. Returns False for unknown requests."""
+        with self.transaction() as conn:
+            if not conn.execute("SELECT 1 FROM requests WHERE id = ?", (request_id,)).fetchone():
+                return False
+            conn.execute(
+                "INSERT INTO feedback (request_id, user_hash, rating, created_at)"
+                " VALUES (?, ?, ?, ?) ON CONFLICT (request_id, user_hash)"
+                " DO UPDATE SET rating = excluded.rating, created_at = excluded.created_at",
+                (request_id, user_hash, rating, self.clock()),
+            )
+        return True
+
     # -- maintenance ----------------------------------------------------------------
 
-    def cleanup_expired(self, keep_resolved_seconds: float = 7 * 24 * 3600) -> dict[str, int]:
-        """Delete expired pending actions and old resolved ones."""
+    def cleanup_expired(
+        self,
+        keep_resolved_seconds: float = 7 * 24 * 3600,
+        keep_events_seconds: float = 24 * 3600,
+    ) -> dict[str, int]:
+        """Delete expired pending actions, old resolved ones and old processed events."""
         now = self.clock()
         with self.transaction() as conn:
             pending = conn.execute(
@@ -251,7 +387,10 @@ class Database:
                 " OR (status != 'pending' AND created_at <= ?)",
                 (now, now - keep_resolved_seconds),
             ).rowcount
-        return {"pending_actions": pending}
+            events = conn.execute(
+                "DELETE FROM processed_events WHERE created_at <= ?", (now - keep_events_seconds,)
+            ).rowcount
+        return {"pending_actions": pending, "processed_events": events}
 
 
 def _row_to_pending(row: sqlite3.Row) -> PendingAction:
