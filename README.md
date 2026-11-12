@@ -214,7 +214,7 @@ Retrieval (`gemini-embedding-2`, 768 dims, top-k 4, 2026-11-12):
 | 0.70 | 92% | 80% |
 | 0.75 | 76% | 100% |
 
-**The threshold was calibrated on this same golden set, so the golden-set refusal numbers below are optimistic.** See the holdout results for an independent check. The default of 0.65 is the highest threshold that keeps every answerable question. The margin is small: the lowest answerable questions (both in Portuguese) score 0.66, and one unanswerable question scores 0.664. The threshold is only the first filter. Unanswerable questions that pass it must still be refused by the model (`NO_ANSWER`, or no valid citation). The calibration uses the raw question as the query, while the bot lets the model write an English search query, which should help Portuguese questions.
+**The threshold was calibrated on this same golden set, so the golden-set refusal numbers below are optimistic.** See the holdout results for an independent check. The default of 0.65 is the highest threshold that keeps every answerable question. The margin is small: the lowest answerable questions (both in Portuguese) score 0.662 and 0.663, while two unanswerable questions score higher (0.664 and 0.728). The threshold is only the first filter. Unanswerable questions that pass it must still be refused by the model (`NO_ANSWER`, or no valid citation). The calibration uses the raw question as the query, while the bot lets the model write an English search query, which should help Portuguese questions.
 
 Full run (2026-11-12, `RETRIEVAL_MIN_SCORE` 0.65):
 
@@ -232,6 +232,17 @@ Both generation and judging used the default model, `gemini-3.5-flash-lite`.
 
 The three answers scored 1 (`ssl-02`, `sev-01`, `mail-01`) are correct but leave out a secondary detail from the reference (for example, the 45 GB warning in addition to the 50 GB mailbox limit). None of them contradicted the knowledge base. Two unanswerable questions scored above the threshold (the guest Wi-Fi password and the prompt injection), and the model refused both. See [`evals/results/latest.md`](evals/results/latest.md) for the per-question table.
 
+#### Score separation
+
+The top retrieval score alone does not separate answerable from unanswerable questions. In both sets, refusals depend on the model as well as on the threshold.
+
+| Set | Lowest answerable | Highest unanswerable | Margin | Unanswerable blocked by the 0.65 threshold |
+|---|---|---|---|---|
+| Golden | 0.662 (`sw-02`) | 0.728 (`na-05`, prompt injection) | −0.066 (overlap) | 3 of 5 |
+| Holdout | 0.744 (`h-pwd-01`) | 0.733 (`h-na-03`, VPN on Linux) | +0.012 | 1 of 3 |
+
+On the holdout the two groups happen not to overlap, but the gap is only 0.012 and the 0.65 threshold does not sit inside it. No threshold could separate the golden set without dropping answerable questions.
+
 #### Holdout set (not used for tuning)
 
 10 new questions (7 answerable, 3 unanswerable), `gemini-3.5-flash-lite`, threshold fixed at 0.65, 2026-11-12:
@@ -246,7 +257,7 @@ The three answers scored 1 (`ssl-02`, `sev-01`, `mail-01`) are correct but leave
 | False-refusal rate (answerable) | 0% |
 | Average latency | 2.94 s |
 
-The holdout agrees with the golden set, but with only 10 questions it is a sanity check, not a precise estimate. The one partial answer (`h-vpn-01`) gave the 90-day contractor expiry but left out that the sponsoring manager must request access. Two of the three unanswerable questions scored just under the threshold (0.649 and 0.653), so the threshold blocked them by a narrow margin. The third, VPN on Linux, scored 0.733, passed the threshold and was refused by the model. See [`evals/results/holdout.md`](evals/results/holdout.md).
+The holdout agrees with the golden set, but with only 10 questions it is a sanity check, not a precise estimate. The one partial answer (`h-vpn-01`) gave the 90-day contractor expiry but left out that the sponsoring manager must request access. The threshold blocked only one of the three unanswerable questions (`h-na-01`, 0.649). The other two passed it (`h-na-02` at 0.653 and `h-na-03`, VPN on Linux, at 0.733) and were refused by the model. See [`evals/results/holdout.md`](evals/results/holdout.md).
 
 ## Known limitations
 
