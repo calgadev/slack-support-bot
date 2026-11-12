@@ -130,7 +130,7 @@ All settings are environment variables (or `.env`). See [`.env.example`](.env.ex
 | `SLACK_BOT_TOKEN` | – (required for the bot) | Bot User OAuth Token (`xoxb-...`) |
 | `SLACK_APP_TOKEN` | – (required for the bot) | App-level token with `connections:write` (`xapp-...`) |
 | `GEMINI_API_KEY` | – (required) | Gemini API key |
-| `GEMINI_MODEL` | `gemini-3.8-flash` | Generation model (function calling) |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Generation model (function calling). This is the evaluated model. Stronger models such as `gemini-3.8-flash` can be configured but are **not evaluated** |
 | `GEMINI_JUDGE_MODEL` | `GEMINI_MODEL` | Model used as eval judge |
 | `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-2` | Embedding model |
 | `GEMINI_EMBEDDING_DIM` | `768` | Embedding dimension (128 to 3072) |
@@ -171,9 +171,15 @@ The suite uses in-memory fakes for Slack and Gemini, a deterministic bag-of-word
 ## Evaluation
 
 ```bash
-uv run python -m evals.run                  # full run (calls the Gemini API)
-uv run python -m evals.run --retrieval-only # retrieval metrics only, cheaper
+uv run python -m evals.run --delay 10       # full run (calls the Gemini API)
+uv run python -m evals.run --retrieval-only # retrieval metrics only (embeddings), cheap
 ```
+
+**Gemini free-tier quotas.** A full run makes about 90 generation requests: 2 or 3 per question (search, then answer) plus one judge call per answerable question. Free-tier limits are per model and per project. At the time of writing they were 15 requests per minute and 500 per day for `gemini-3.5-flash-lite`, but only 20 per day for `gemini-3.8-flash`, which is too few for one run. Check the current limits at <https://ai.dev/rate-limit>.
+
+- `--delay N` waits N seconds between questions. Each question sends its calls back to back, so `--delay 10` keeps a run at about 12 requests per minute, under a 15 RPM limit.
+- `--limit N` runs only the first N questions (useful as a smoke test).
+- Embeddings have their own quota, so `--retrieval-only` works even when the generation quota is used up.
 
 [`evals/golden.jsonl`](evals/golden.jsonl) has 30 questions: 25 answerable (English and Portuguese) with the expected source document and a short reference answer, and 5 that are not covered by the knowledge base, one of them a prompt-injection attempt. The runner reports:
 
@@ -219,7 +225,7 @@ Full run (2026-11-12, `RETRIEVAL_MIN_SCORE` 0.65):
 | Average latency | 3.27 s |
 | Errors | 0 |
 
-> **Model note:** this run used `gemini-3.5-flash-lite` for both generation and judging, not the default `gemini-3.8-flash`, because the default model's free-tier daily quota was exhausted that day. Re-run with the default model before you compare numbers.
+Both generation and judging used the default model, `gemini-3.5-flash-lite`.
 
 The three answers scored 1 (`ssl-02`, `sev-01`, `mail-01`) are correct but leave out a secondary detail from the reference (for example, the 45 GB warning in addition to the 50 GB mailbox limit). None of them contradicted the knowledge base. Two unanswerable questions scored above the threshold (the guest Wi-Fi password and the prompt injection), and the model refused both. See [`evals/results/latest.md`](evals/results/latest.md) for the per-question table.
 

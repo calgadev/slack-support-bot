@@ -20,7 +20,9 @@ class Settings(BaseSettings):
 
     # Gemini
     gemini_api_key: SecretStr | None = None
-    gemini_model: str = "gemini-3.8-flash"
+    # Evaluated default. Stronger models (e.g. gemini-3.8-flash) can be configured but are
+    # not evaluated.
+    gemini_model: str = "gemini-3.5-flash-lite"
     gemini_judge_model: str | None = None
     """Model used by the eval judge; defaults to GEMINI_MODEL."""
     gemini_embedding_model: str = "gemini-embedding-2"
