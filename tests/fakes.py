@@ -19,6 +19,11 @@ class FakeSlackClient:
     def __init__(self) -> None:
         self.posted: list[dict[str, Any]] = []
         self.updated: list[dict[str, Any]] = []
+        self.ephemeral: list[dict[str, Any]] = []
+
+    def chat_postEphemeral(self, **kwargs: Any) -> dict[str, Any]:
+        self.ephemeral.append(kwargs)
+        return {"ok": True}
 
     def chat_postMessage(self, **kwargs: Any) -> dict[str, Any]:
         self.posted.append(kwargs)
@@ -78,9 +83,16 @@ class FakeLLM:
         self.embed_calls: list[list[str]] = []
         self._embedder = embedder or bag_of_words
 
-    def generate(self, contents, *, system_instruction, tools=None) -> LLMResponse:
+    def generate(
+        self, contents, *, system_instruction, tools=None, force_tool=False
+    ) -> LLMResponse:
         self.calls.append(
-            {"contents": list(contents), "system_instruction": system_instruction, "tools": tools}
+            {
+                "contents": list(contents),
+                "system_instruction": system_instruction,
+                "tools": tools,
+                "force_tool": force_tool,
+            }
         )
         if not self.responses:
             raise AssertionError("FakeLLM ran out of scripted responses")

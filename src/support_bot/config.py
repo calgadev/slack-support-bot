@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     retrieval_top_k: int = Field(default=4, ge=1, le=20)
     retrieval_min_score: float = Field(default=0.5, ge=-1.0, le=1.0)
 
+    # Tickets
+    pending_action_ttl_seconds: int = Field(default=900, ge=60)
+    cleanup_interval_seconds: int = Field(default=600, ge=60)
+
     # Storage
     data_dir: Path = Path("data")
 
@@ -48,6 +52,10 @@ class Settings(BaseSettings):
     @property
     def chroma_dir(self) -> Path:
         return self.data_dir / "chroma"
+
+    @property
+    def sqlite_path(self) -> Path:
+        return self.data_dir / "support_bot.db"
 
     @property
     def heartbeat_path(self) -> Path:

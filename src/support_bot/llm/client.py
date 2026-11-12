@@ -67,6 +67,7 @@ class LLMClient(Protocol):
         *,
         system_instruction: str,
         tools: Sequence[types.Tool] | None = None,
+        force_tool: bool = False,
     ) -> LLMResponse: ...
 
     def embed(self, texts: Sequence[str]) -> list[list[float]]:
@@ -128,10 +129,20 @@ class GeminiClient:
         *,
         system_instruction: str,
         tools: Sequence[types.Tool] | None = None,
+        force_tool: bool = False,
     ) -> LLMResponse:
+        """Generate a reply. ``force_tool`` makes the model call one of the tools (mode ANY)."""
+        tool_config = None
+        if tools and force_tool:
+            tool_config = types.ToolConfig(
+                function_calling_config=types.FunctionCallingConfig(
+                    mode=types.FunctionCallingConfigMode.ANY
+                )
+            )
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
             tools=list(tools) if tools else None,
+            tool_config=tool_config,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             max_output_tokens=self.max_output_tokens,
         )

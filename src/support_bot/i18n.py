@@ -101,9 +101,43 @@ MESSAGES: dict[str, dict[Lang, str]] = {
     },
     "low_confidence": {
         "en": "I couldn't find a reliable answer to this in the Acme knowledge base, so I'd "
-        "rather not guess. Would you like me to open a support ticket for you?",
+        "rather not guess. Would you like me to open a support ticket? I drafted one below.",
         "pt": "Não encontrei uma resposta confiável para isso na base de conhecimento da Acme, "
-        "então prefiro não chutar. Quer que eu abra um chamado para você?",
+        "então prefiro não chutar. Quer que eu abra um chamado? Deixei um rascunho abaixo.",
+    },
+    "ticket_draft": {
+        "en": "Here is the ticket draft. Nothing is created until you confirm.",
+        "pt": "Aqui está o rascunho do chamado. Nada é criado até você confirmar.",
+    },
+    "ticket_fields": {
+        "en": "*Title:* {title}\n*Priority:* {priority}\n*Description:* {description}",
+        "pt": "*Título:* {title}\n*Prioridade:* {priority}\n*Descrição:* {description}",
+    },
+    "btn_confirm": {"en": "Open ticket", "pt": "Abrir chamado"},
+    "btn_cancel": {"en": "Cancel", "pt": "Cancelar"},
+    "ticket_created": {
+        "en": ":white_check_mark: Ticket *{key}* created: {title} (priority {priority}).",
+        "pt": ":white_check_mark: Chamado *{key}* criado: {title} (prioridade {priority}).",
+    },
+    "ticket_cancelled": {
+        "en": "Ticket draft cancelled. Nothing was created.",
+        "pt": "Rascunho cancelado. Nenhum chamado foi criado.",
+    },
+    "ticket_expired": {
+        "en": "This draft expired, so nothing was created. Ask me again to start a new one.",
+        "pt": "Este rascunho expirou e nenhum chamado foi criado. Peça de novo para começar outro.",
+    },
+    "ticket_already": {
+        "en": "This draft was already handled.",
+        "pt": "Este rascunho já foi tratado.",
+    },
+    "ticket_not_owner": {
+        "en": "Only the person who asked for this ticket can confirm or cancel it.",
+        "pt": "Só quem pediu este chamado pode confirmar ou cancelar.",
+    },
+    "ticket_not_found": {
+        "en": "I couldn't find this ticket draft anymore. Ask me again to start a new one.",
+        "pt": "Não encontrei mais este rascunho. Peça de novo para começar outro.",
     },
     "sources": {"en": "Sources", "pt": "Fontes"},
     "too_long": {
@@ -125,5 +159,5 @@ def detect_language(text: str) -> Lang:
     return "pt" if pt > en else "en"
 
 
-def t(key: str, lang: Lang, **kwargs: object) -> str:
+def t(key: str, lang: Lang, /, **kwargs: object) -> str:
     return MESSAGES[key][lang].format(**kwargs)

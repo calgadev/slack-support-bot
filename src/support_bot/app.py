@@ -5,6 +5,8 @@ from __future__ import annotations
 import signal
 import sys
 import threading
+import time
+from dataclasses import dataclass
 from typing import Any
 
 from slack_bolt import App, BoltContext
@@ -16,7 +18,9 @@ from support_bot.llm.client import GeminiClient
 from support_bot.logging_setup import configure_logging, get_logger
 from support_bot.orchestrator import Orchestrator
 from support_bot.rag.store import Retriever, VectorStore
-from support_bot.slack.handlers import MessageHandler
+from support_bot.slack.blocks import ACTION_TICKET_CANCEL, ACTION_TICKET_CONFIRM
+from support_bot.slack.handlers import ActionHandler, MessageHandler
+from support_bot.storage.db import Database
 
 log = get_logger(__name__)
 
@@ -35,7 +39,13 @@ def build_llm(settings: Settings) -> GeminiClient:
     )
 
 
-def build_app(settings: Settings) -> App:
+@dataclass
+class BotComponents:
+    app: App
+    db: Database
+
+
+def build_app(settings: Settings) -> BotComponents:
     if settings.slack_bot_token is None:
         raise RuntimeError("SLACK_BOT_TOKEN is not set")
     app = App(token=settings.slack_bot_token.get_secret_value())
@@ -46,28 +56,36 @@ def build_app(settings: Settings) -> App:
     store.check_compatible()
     if store.count() == 0:
         log.warning("knowledge_base_empty", hint="run `uv run support-bot-ingest`")
+    db = Database(settings.sqlite_path)
     retriever = Retriever(store, llm, settings.retrieval_top_k)
     orchestrator = Orchestrator(llm, retriever, settings.retrieval_min_score)
-    handler = MessageHandler(orchestrator, settings)
+    messages = MessageHandler(orchestrator, db, settings)
+    actions = ActionHandler(db)
 
     @app.event("app_mention")
     def on_mention(event: dict[str, Any], client: Any, context: BoltContext) -> None:
-        handler.handle(event, client, context.bot_user_id)
+        messages.handle(event, client, context.bot_user_id)
 
     @app.event("message")
     def on_message(event: dict[str, Any], client: Any, context: BoltContext) -> None:
         if event.get("channel_type") != "im":
             return
-        handler.handle(event, client, context.bot_user_id)
+        messages.handle(event, client, context.bot_user_id)
 
-    return app
+    @app.action(ACTION_TICKET_CONFIRM)
+    @app.action(ACTION_TICKET_CANCEL)
+    def on_ticket_action(ack: Any, body: dict[str, Any], client: Any) -> None:
+        ack()
+        actions.handle_ticket_action(body, client)
+
+    return BotComponents(app=app, db=db)
 
 
 def run(settings: Settings) -> None:
     if settings.slack_app_token is None:
         raise RuntimeError("SLACK_APP_TOKEN is not set")
-    app = build_app(settings)
-    handler = SocketModeHandler(app, settings.slack_app_token.get_secret_value())
+    components = build_app(settings)
+    handler = SocketModeHandler(components.app, settings.slack_app_token.get_secret_value())
     stop = threading.Event()
 
     def _shutdown(signum: int, _frame: Any) -> None:
@@ -79,15 +97,23 @@ def run(settings: Settings) -> None:
 
     handler.connect()
     log.info("socket_mode_connected")
+    last_cleanup = 0.0
     try:
         while not stop.is_set():
             if handler.client.is_connected():
                 write_heartbeat(settings.heartbeat_path)
             else:
                 log.warning("socket_mode_disconnected")
+            if time.monotonic() - last_cleanup >= settings.cleanup_interval_seconds:
+                try:
+                    log.info("cleanup_done", **components.db.cleanup_expired())
+                except Exception:
+                    log.exception("cleanup_failed")
+                last_cleanup = time.monotonic()
             stop.wait(settings.heartbeat_interval_seconds)
     finally:
         handler.close()
+        components.db.close()
         log.info("stopped")
 
 
