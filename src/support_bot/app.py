@@ -7,33 +7,48 @@ import sys
 import threading
 from typing import Any
 
-from slack_bolt import App
+from slack_bolt import App, BoltContext
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from support_bot.config import Settings, get_settings
 from support_bot.health import write_heartbeat
+from support_bot.llm.client import GeminiClient
 from support_bot.logging_setup import configure_logging, get_logger
+from support_bot.orchestrator import Orchestrator
+from support_bot.slack.handlers import MessageHandler
 
 log = get_logger(__name__)
+
+
+def build_llm(settings: Settings) -> GeminiClient:
+    if settings.gemini_api_key is None:
+        raise RuntimeError("GEMINI_API_KEY is not set")
+    return GeminiClient(
+        api_key=settings.gemini_api_key.get_secret_value(),
+        model=settings.gemini_model,
+        embedding_model=settings.gemini_embedding_model,
+        embedding_dim=settings.gemini_embedding_dim,
+        timeout_seconds=settings.gemini_timeout_seconds,
+        max_attempts=settings.gemini_max_attempts,
+        max_output_tokens=settings.gemini_max_output_tokens,
+    )
 
 
 def build_app(settings: Settings) -> App:
     if settings.slack_bot_token is None:
         raise RuntimeError("SLACK_BOT_TOKEN is not set")
     app = App(token=settings.slack_bot_token.get_secret_value())
-
-    def reply(event: dict[str, Any], say: Any) -> None:
-        say(text="hello", thread_ts=event.get("thread_ts") or event["ts"])
+    handler = MessageHandler(Orchestrator(build_llm(settings)), settings)
 
     @app.event("app_mention")
-    def on_mention(event: dict[str, Any], say: Any) -> None:
-        reply(event, say)
+    def on_mention(event: dict[str, Any], client: Any, context: BoltContext) -> None:
+        handler.handle(event, client, context.bot_user_id)
 
     @app.event("message")
-    def on_message(event: dict[str, Any], say: Any) -> None:
-        if event.get("channel_type") != "im" or event.get("bot_id") or event.get("subtype"):
+    def on_message(event: dict[str, Any], client: Any, context: BoltContext) -> None:
+        if event.get("channel_type") != "im":
             return
-        reply(event, say)
+        handler.handle(event, client, context.bot_user_id)
 
     return app
 
