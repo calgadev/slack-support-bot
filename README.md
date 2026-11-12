@@ -192,6 +192,8 @@ uv run python -m evals.run --retrieval-only # retrieval metrics only (embeddings
 
 Results are written to [`evals/results/latest.md`](evals/results/latest.md). Evals call the real API, so they do not run in CI.
 
+A separate **holdout set**, [`evals/holdout.jsonl`](evals/holdout.jsonl), has 10 questions written after `RETRIEVAL_MIN_SCORE` was fixed and committed before they were first run. Nothing is tuned on it. Run it with `uv run python -m evals.run --set holdout --delay 10`; results go to [`evals/results/holdout.md`](evals/results/holdout.md).
+
 ### Results
 
 Retrieval (`gemini-embedding-2`, 768 dims, top-k 4, 2026-11-12):
@@ -211,7 +213,7 @@ Retrieval (`gemini-embedding-2`, 768 dims, top-k 4, 2026-11-12):
 | 0.70 | 92% | 80% |
 | 0.75 | 76% | 100% |
 
-The default of 0.65 is the highest threshold that keeps every answerable question. The margin is small: the lowest answerable questions (both in Portuguese) score 0.66, and one unanswerable question scores 0.664. The threshold is only the first filter. Unanswerable questions that pass it must still be refused by the model (`NO_ANSWER`, or no valid citation). The calibration uses the raw question as the query, while the bot lets the model write an English search query, which should help Portuguese questions.
+**The threshold was calibrated on this same golden set, so the golden-set refusal numbers below are optimistic.** See the holdout results for an independent check. The default of 0.65 is the highest threshold that keeps every answerable question. The margin is small: the lowest answerable questions (both in Portuguese) score 0.66, and one unanswerable question scores 0.664. The threshold is only the first filter. Unanswerable questions that pass it must still be refused by the model (`NO_ANSWER`, or no valid citation). The calibration uses the raw question as the query, while the bot lets the model write an English search query, which should help Portuguese questions.
 
 Full run (2026-11-12, `RETRIEVAL_MIN_SCORE` 0.65):
 
@@ -229,10 +231,26 @@ Both generation and judging used the default model, `gemini-3.5-flash-lite`.
 
 The three answers scored 1 (`ssl-02`, `sev-01`, `mail-01`) are correct but leave out a secondary detail from the reference (for example, the 45 GB warning in addition to the 50 GB mailbox limit). None of them contradicted the knowledge base. Two unanswerable questions scored above the threshold (the guest Wi-Fi password and the prompt injection), and the model refused both. See [`evals/results/latest.md`](evals/results/latest.md) for the per-question table.
 
+#### Holdout set (not used for tuning)
+
+10 new questions (7 answerable, 3 unanswerable), `gemini-3.5-flash-lite`, threshold fixed at 0.65, 2026-11-12:
+
+| Metric | Value |
+|---|---|
+| Retrieval hit@1 / hit@4 | 100% / 100% |
+| Answer correctness (judge score 2/2) | 86% (6 of 7) |
+| Mean judge score (0-2) | 1.86 |
+| Citation accuracy | 100% |
+| Correct-refusal rate (unanswerable) | 100% (3 of 3) |
+| False-refusal rate (answerable) | 0% |
+| Average latency | 2.94 s |
+
+The holdout agrees with the golden set, but with only 10 questions it is a sanity check, not a precise estimate. The one partial answer (`h-vpn-01`) gave the 90-day contractor expiry but left out that the sponsoring manager must request access. Two of the three unanswerable questions scored just under the threshold (0.649 and 0.653), so the threshold blocked them by a narrow margin. The third, VPN on Linux, scored 0.733, passed the threshold and was refused by the model. See [`evals/results/holdout.md`](evals/results/holdout.md).
+
 ## Known limitations
 
 - **Same-family judge**: the judge is a Gemini model grading Gemini answers, which can bias scores upward. Use the scores as a regression signal, not an absolute quality measure, and spot-check the per-question table.
-- **Small golden set**: 30 questions catch regressions but are not statistically strong.
+- **Small eval sets**: 30 golden plus 10 holdout questions catch regressions but are not statistically strong, and the threshold was tuned on the golden set.
 - **No conversation memory**: each message is answered on its own. A reply like "yes, open it" in a thread does not see earlier messages, so the bot offers a ticket draft with buttons instead.
 - **Single instance**: Chroma and SQLite are local to one container. Horizontal scaling needs shared stores (see ADRs 0002 and 0003).
 - **Tickets stay local**: confirmed tickets are stored in SQLite, not sent to a real service desk.

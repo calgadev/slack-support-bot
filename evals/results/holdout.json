@@ -1,0 +1,300 @@
+{
+  "meta": {
+    "dataset": "holdout",
+    "date": "2026-11-12 21:42 UTC",
+    "model": "gemini-3.5-flash-lite",
+    "judge_model": "gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-2",
+    "embedding_dim": 768,
+    "min_score": 0.65,
+    "generation": true
+  },
+  "metrics": {
+    "items": 10,
+    "answerable": 7,
+    "unanswerable": 3,
+    "k": 4,
+    "hit_at_1": 1.0,
+    "hit_at_k": 1.0,
+    "answer_correct": 0.8571428571428571,
+    "answer_mean_score": 1.8571428571428572,
+    "citation_accuracy": 1.0,
+    "false_refusal_rate": 0.0,
+    "correct_refusal_rate": 1.0,
+    "avg_latency_ms": 2937.1,
+    "errors": 0,
+    "calibration": [
+      {
+        "threshold": 0.3,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.35,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.4,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.45,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.5,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.55,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.6,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.0
+      },
+      {
+        "threshold": 0.65,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.3333333333333333
+      },
+      {
+        "threshold": 0.7,
+        "answerable_kept": 1.0,
+        "unanswerable_blocked": 0.6666666666666666
+      },
+      {
+        "threshold": 0.75,
+        "answerable_kept": 0.8571428571428571,
+        "unanswerable_blocked": 1.0
+      },
+      {
+        "threshold": 0.8,
+        "answerable_kept": 0.42857142857142855,
+        "unanswerable_blocked": 1.0
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "h-mail-01",
+      "answerable": true,
+      "expected_source": "email-problems.md",
+      "retrieved_sources": [
+        "email-problems.md",
+        "shared-drive-access.md",
+        "shared-drive-access.md",
+        "erp-access-error.md"
+      ],
+      "top_score": 0.7985,
+      "rank": 1,
+      "outcome": "answered",
+      "answer": "Your request to access a shared mailbox must be approved by the mailbox owner [1]. Once approved, the mailbox will appear in your client within 2 hours [1].",
+      "cited_sources": [
+        "email-problems.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant correctly identifies that the mailbox owner must approve the request and that it will appear in the client within 2 hours, matching all key facts of the reference answer.",
+      "latency_ms": 3524,
+      "error": null
+    },
+    {
+      "id": "h-erp-01",
+      "answerable": true,
+      "expected_source": "erp-access-error.md",
+      "retrieved_sources": [
+        "erp-access-error.md",
+        "software-request-process.md",
+        "vpn-access.md",
+        "shared-drive-access.md"
+      ],
+      "top_score": 0.7749,
+      "rank": 1,
+      "outcome": "answered",
+      "answer": "O pedido leva até 3 dias úteis [1]. \n\nPara ser aprovado, são necessárias as seguintes aprovações:\n1. O seu gestor [1].\n2. O proprietário do papel (*role owner*) [1].",
+      "cited_sources": [
+        "erp-access-error.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly states that it takes up to 3 business days and that both the manager and the role owner must approve, perfectly matching the reference answer.",
+      "latency_ms": 2980,
+      "error": null
+    },
+    {
+      "id": "h-print-01",
+      "answerable": true,
+      "expected_source": "printer-issues.md",
+      "retrieved_sources": [
+        "printer-issues.md",
+        "printer-issues.md",
+        "printer-issues.md",
+        "printer-issues.md"
+      ],
+      "top_score": 0.8189,
+      "rank": 1,
+      "outcome": "answered",
+      "answer": "No, personal phones cannot print to Acme printers [1].",
+      "cited_sources": [
+        "printer-issues.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly states that personal phones cannot print to the office printers, matching the reference answer.",
+      "latency_ms": 2223,
+      "error": null
+    },
+    {
+      "id": "h-pwd-01",
+      "answerable": true,
+      "expected_source": "password-reset.md",
+      "retrieved_sources": [
+        "password-reset.md",
+        "password-reset.md",
+        "password-reset.md",
+        "password-reset.md"
+      ],
+      "top_score": 0.7442,
+      "rank": 1,
+      "outcome": "answered",
+      "answer": "No, you cannot reuse any of your last 10 passwords [1].",
+      "cited_sources": [
+        "password-reset.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly conveys that the user cannot reuse any of their last 10 passwords, which matches the reference answer.",
+      "latency_ms": 1933,
+      "error": null
+    },
+    {
+      "id": "h-vpn-01",
+      "answerable": true,
+      "expected_source": "vpn-access.md",
+      "retrieved_sources": [
+        "vpn-access.md",
+        "vpn-access.md",
+        "vpn-access.md",
+        "vpn-access.md"
+      ],
+      "top_score": 0.8022,
+      "rank": 1,
+      "outcome": "answered",
+      "answer": "A contractor's VPN access expires after 90 days unless it is renewed [1].",
+      "cited_sources": [
+        "vpn-access.md"
+      ],
+      "judge_score": 1,
+      "judge_reason": "The assistant mentions the 90-day expiration and renewal, but omits the key detail that the access must be requested by the sponsoring manager.",
+      "latency_ms": 2755,
+      "error": null
+    },
+    {
+      "id": "h-laptop-01",
+      "answerable": true,
+      "expected_source": "new-laptop-onboarding.md",
+      "retrieved_sources": [
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md",
+        "new-laptop-onboarding.md"
+      ],
+      "top_score": 0.7605,
+      "rank": 1,
+      "outcome": "answered",
+      "answer": "Você deve devolver o notebook antigo à mesa de TI em até *10 dias úteis* [1]. \n\nVocê *não* deve formatá-lo; a equipe de TI é responsável por remover os dados [1].",
+      "cited_sources": [
+        "new-laptop-onboarding.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant correctly answered both parts of the question, stating that the laptop must be returned within 10 business days and that IT will handle the data removal/formatting, matching the reference answer.",
+      "latency_ms": 3150,
+      "error": null
+    },
+    {
+      "id": "h-sev-01",
+      "answerable": true,
+      "expected_source": "incident-severity-definitions.md",
+      "retrieved_sources": [
+        "incident-severity-definitions.md",
+        "incident-severity-definitions.md",
+        "incident-severity-definitions.md",
+        "incident-severity-definitions.md"
+      ],
+      "top_score": 0.8208,
+      "rank": 1,
+      "outcome": "answered",
+      "answer": "O prazo de resposta para um chamado SEV4 (baixo) é de *2 dias úteis* [1].",
+      "cited_sources": [
+        "incident-severity-definitions.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant correctly states the response time for a SEV4 ticket as 2 business days in Portuguese, matching the reference answer.",
+      "latency_ms": 2659,
+      "error": null
+    },
+    {
+      "id": "h-na-01",
+      "answerable": false,
+      "expected_source": null,
+      "retrieved_sources": [
+        "new-laptop-onboarding.md",
+        "vpn-access.md",
+        "software-request-process.md",
+        "software-request-process.md"
+      ],
+      "top_score": 0.6486,
+      "rank": null,
+      "outcome": "low_confidence",
+      "answer": "",
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": 4151,
+      "error": null
+    },
+    {
+      "id": "h-na-02",
+      "answerable": false,
+      "expected_source": null,
+      "retrieved_sources": [
+        "password-reset.md",
+        "how-to-open-a-ticket.md",
+        "mfa-issues.md",
+        "printer-issues.md"
+      ],
+      "top_score": 0.6526,
+      "rank": null,
+      "outcome": "low_confidence",
+      "answer": "",
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": 2457,
+      "error": null
+    },
+    {
+      "id": "h-na-03",
+      "answerable": false,
+      "expected_source": null,
+      "retrieved_sources": [
+        "vpn-access.md",
+        "vpn-access.md",
+        "vpn-access.md",
+        "vpn-access.md"
+      ],
+      "top_score": 0.7326,
+      "rank": null,
+      "outcome": "low_confidence",
+      "answer": "",
+      "cited_sources": [],
+      "judge_score": null,
+      "judge_reason": null,
+      "latency_ms": 3539,
+      "error": null
+    }
+  ]
+}
