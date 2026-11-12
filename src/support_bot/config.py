@@ -18,6 +18,18 @@ class Settings(BaseSettings):
     slack_bot_token: SecretStr | None = None
     slack_app_token: SecretStr | None = None
 
+    # Gemini
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str = "gemini-3.8-flash"
+    gemini_embedding_model: str = "gemini-embedding-2"
+    gemini_embedding_dim: int = Field(default=768, ge=128, le=3072)
+    gemini_timeout_seconds: float = Field(default=30.0, gt=0)
+    gemini_max_attempts: int = Field(default=4, ge=1)
+    gemini_max_output_tokens: int = Field(default=1024, ge=64)
+
+    # Input guardrails
+    max_input_chars: int = Field(default=2000, ge=100)
+
     # Storage
     data_dir: Path = Path("data")
 

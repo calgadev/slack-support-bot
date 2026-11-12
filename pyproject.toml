@@ -7,6 +7,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "chromadb>=1.5.9",
     "google-genai>=3.3.0",
+    "httpx>=0.28.1",
     "pydantic-settings>=2.16.2",
     "slack-bolt>=1.30.0",
     "structlog>=26.1.0",
@@ -35,6 +36,8 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# google-genai ships docstrings with invalid escape sequences
+filterwarnings = ["ignore::SyntaxWarning"]
 
 [dependency-groups]
 dev = [
