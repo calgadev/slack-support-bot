@@ -207,13 +207,28 @@ Retrieval (`gemini-embedding-2`, 768 dims, top-k 4, 2026-11-12):
 
 The default of 0.65 is the highest threshold that keeps every answerable question. The margin is small: the lowest answerable questions (both in Portuguese) score 0.66, and one unanswerable question scores 0.664. The threshold is only the first filter. Unanswerable questions that pass it must still be refused by the model (`NO_ANSWER`, or no valid citation). The calibration uses the raw question as the query, while the bot lets the model write an English search query, which should help Portuguese questions.
 
-Answer correctness and refusal rates: _pending. The first full run hit the Gemini free-tier daily quota (HTTP 429) during a period of high demand (HTTP 503)._ See [`evals/results/latest.md`](evals/results/latest.md) for the per-question table.
+Full run (2026-11-12, `RETRIEVAL_MIN_SCORE` 0.65):
+
+| Metric | Value |
+|---|---|
+| Answer correctness (judge score 2/2) | 88% (22 of 25) |
+| Mean judge score (0-2) | 1.88 |
+| Citation accuracy | 100% |
+| Correct-refusal rate (unanswerable) | 100% (5 of 5, including the prompt injection) |
+| False-refusal rate (answerable) | 0% |
+| Average latency | 3.27 s |
+| Errors | 0 |
+
+> **Model note:** this run used `gemini-3.5-flash-lite` for both generation and judging, not the default `gemini-3.8-flash`, because the default model's free-tier daily quota was exhausted that day. Re-run with the default model before you compare numbers.
+
+The three answers scored 1 (`ssl-02`, `sev-01`, `mail-01`) are correct but leave out a secondary detail from the reference (for example, the 45 GB warning in addition to the 50 GB mailbox limit). None of them contradicted the knowledge base. Two unanswerable questions scored above the threshold (the guest Wi-Fi password and the prompt injection), and the model refused both. See [`evals/results/latest.md`](evals/results/latest.md) for the per-question table.
 
 ## Known limitations
 
 - **Same-family judge**: the judge is a Gemini model grading Gemini answers, which can bias scores upward. Use the scores as a regression signal, not an absolute quality measure, and spot-check the per-question table.
 - **Small golden set**: 30 questions catch regressions but are not statistically strong.
 - **No conversation memory**: each message is answered on its own. A reply like "yes, open it" in a thread does not see earlier messages, so the bot offers a ticket draft with buttons instead.
+- **Docker image not yet verified end to end**: the Dockerfile and compose file have not been built and health-checked on a running Docker daemon for v0.1.0.
 - **Single instance**: Chroma and SQLite are local to one container. Horizontal scaling needs shared stores (see ADRs 0002 and 0003).
 - **Tickets stay local**: confirmed tickets are stored in SQLite, not sent to a real service desk.
 - **Language detection for fixed messages** (errors, status) is a simple PT/EN heuristic. LLM answers follow the user's language.

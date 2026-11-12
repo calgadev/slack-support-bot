@@ -1,12 +1,12 @@
 {
   "meta": {
-    "date": "2026-11-12 21:08 UTC",
-    "model": "gemini-3.8-flash",
-    "judge_model": "gemini-3.8-flash",
+    "date": "2026-11-12 21:24 UTC",
+    "model": "gemini-3.5-flash-lite",
+    "judge_model": "gemini-3.5-flash-lite",
     "embedding_model": "gemini-embedding-2",
     "embedding_dim": 768,
     "min_score": 0.65,
-    "generation": false
+    "generation": true
   },
   "metrics": {
     "items": 30,
@@ -15,6 +15,13 @@
     "k": 4,
     "hit_at_1": 0.92,
     "hit_at_k": 1.0,
+    "answer_correct": 0.88,
+    "answer_mean_score": 1.88,
+    "citation_accuracy": 1.0,
+    "false_refusal_rate": 0.0,
+    "correct_refusal_rate": 1.0,
+    "avg_latency_ms": 3273.4,
+    "errors": 0,
     "calibration": [
       {
         "threshold": 0.3,
@@ -86,12 +93,14 @@
       ],
       "top_score": 0.7837,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "You should use `vpn.acme.example` as the server address in Acme SecureConnect [1][2].",
+      "cited_sources": [
+        "vpn-access.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly provides the server address 'vpn.acme.example' as specified in the reference answer.",
+      "latency_ms": 3391,
       "error": null
     },
     {
@@ -106,12 +115,14 @@
       ],
       "top_score": 0.7832,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "For error *SC-1020 \"Device not compliant\"*, your laptop is missing security updates [1]. \n\n1. Install any pending updates [1].\n2. Restart your laptop [1].\n3. Try connecting again [1].",
+      "cited_sources": [
+        "vpn-access.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant correctly identifies that the error is caused by missing security updates and provides the exact steps from the reference answer (install updates, restart, and try again).",
+      "latency_ms": 3111,
       "error": null
     },
     {
@@ -126,12 +137,14 @@
       ],
       "top_score": 0.6629,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Sim, isso é normal. As sessões da VPN são desconectadas automaticamente após 12 horas, sendo necessário se reconectar caso isso aconteça [1].",
+      "cited_sources": [
+        "vpn-access.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly identifies that it is normal and explains the key fact that sessions disconnect automatically after 12 hours, matching the reference answer.",
+      "latency_ms": 2971,
       "error": null
     },
     {
@@ -146,12 +159,14 @@
       ],
       "top_score": 0.7787,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "The minimum password length at Acme is *14 characters* [1].",
+      "cited_sources": [
+        "password-reset.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly states the minimum password length is 14 characters, matching the reference answer.",
+      "latency_ms": 1989,
       "error": null
     },
     {
@@ -166,12 +181,14 @@
       ],
       "top_score": 0.8081,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Your account locks for *30 minutes* after 5 failed sign-in attempts [1]. You can also unlock it immediately at `https://password.acme.example` using the *Unlock account* option [1].",
+      "cited_sources": [
+        "password-reset.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly includes all key facts from the reference: it locks for 30 minutes after 5 failed attempts and can be unlocked immediately at the specified website using the Unlock account option.",
+      "latency_ms": 3223,
       "error": null
     },
     {
@@ -186,12 +203,14 @@
       ],
       "top_score": 0.7433,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Você pode redefinir sua senha sozinho acessando o endereço `https://password.acme.example` [1].\n\n1. Insira seu nome de usuário da Acme [1].\n2. Verifique sua identidade com uma notificação push no Acme Authenticator ou um código enviado para o seu número de celular cadastrado [1].\n3. Escolha uma nova senha que siga a política (mínimo de 14 caracteres, sem conter seu nome de usuário ou nome/sobrenome, e sem repetir as últimas 10 senhas) [1][2].\n\nA nova senha funcionará para seu notebook, e-mail, VPN e AcmeERP em até 15 minutos [1].",
+      "cited_sources": [
+        "password-reset.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly includes all key facts from the reference (using the correct URL, entering the username, verifying via push or SMS, and choosing a new password following the policy) and adds consistent, non-contradictory extra details.",
+      "latency_ms": 2851,
       "error": null
     },
     {
@@ -206,12 +225,14 @@
       ],
       "top_score": 0.773,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Since your phone was lost, call the Service Desk at extension *4357* immediately [1]. \n\nThey will perform the following:\n1. Remove your lost device [1].\n2. Provide you with a temporary access code valid for 24 hours so you can register a new phone [1].",
+      "cited_sources": [
+        "mfa-issues.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly includes all key facts from the reference: calling the Service Desk at extension 4357 immediately, having the lost device removed, and receiving a 24-hour temporary access code to register a new phone, with no contradictions.",
+      "latency_ms": 3986,
       "error": null
     },
     {
@@ -226,12 +247,14 @@
       ],
       "top_score": 0.8068,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Se você recebeu uma notificação de MFA que não solicitou, faça o seguinte [1]:\n\n1. *Negue* a notificação imediatamente [1].\n2. Resete sua senha, pois prompts inesperados repetidos geralmente significam que alguém possui sua senha [1].\n3. Abra um chamado com severidade SEV2 e escolha a categoria *Security* para relatar o ocorrido [1].",
+      "cited_sources": [
+        "mfa-issues.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant correctly identifies all key facts from the reference answer: denying the notification, resetting the password, and opening a SEV2 security ticket.",
+      "latency_ms": 2152,
       "error": null
     },
     {
@@ -246,12 +269,14 @@
       ],
       "top_score": 0.8548,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "If push notifications from Acme Authenticator are not arriving, you can try the following steps:\n\n1. Check that your phone has internet access and that notifications are allowed for Acme Authenticator [1].\n2. Open the app manually, as pending requests appear on the main screen [1].\n3. Make sure your phone's date and time are set automatically, since a clock off by more than 2 minutes makes codes fail [1].\n4. Use the 6-digit code shown in the app as a fallback instead of the push notification [1].",
+      "cited_sources": [
+        "mfa-issues.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer covers all the key facts from the reference answer accurately and without any contradictions.",
+      "latency_ms": 3336,
       "error": null
     },
     {
@@ -266,12 +291,14 @@
       ],
       "top_score": 0.8854,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "*ERP-401 Not authorized* means you are signed in, but you do not have the role needed for that screen [1].\n\nTo resolve this:\n1. Check which role the screen requires in the error details [1].\n2. Request the missing role in the Acme Service Portal under *Access Requests > AcmeERP Role* (approvals from both your manager and the role owner are required, taking up to 3 business days) [2].\n3. If you had access yesterday and lost it, your role may have been removed by the quarterly access review; ask your manager to re-request it [1].",
+      "cited_sources": [
+        "erp-access-error.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly identifies that the user lacks the required role, explains how to request it in the Service Portal with manager and role owner approval, and mentions the quarterly access review, aligning fully with the reference answer.",
+      "latency_ms": 4295,
       "error": null
     },
     {
@@ -286,12 +313,14 @@
       ],
       "top_score": 0.7769,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "A manutenção programada do AcmeERP acontece todos os domingos, das 02:00 às 04:00 UTC [1].",
+      "cited_sources": [
+        "erp-access-error.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly states the scheduled maintenance time in Portuguese, which matches the reference answer (Every Sunday from 02:00 to 04:00 UTC).",
+      "latency_ms": 3077,
       "error": null
     },
     {
@@ -306,12 +335,14 @@
       ],
       "top_score": 0.8206,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Internal TLS certificates are valid for *397 days* [1].",
+      "cited_sources": [
+        "ssl-certificate-expiry.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly states that internal TLS certificates are valid for 397 days, matching the reference answer.",
+      "latency_ms": 3605,
       "error": null
     },
     {
@@ -326,12 +357,14 @@
       ],
       "top_score": 0.7955,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "A ticket is opened automatically *14 days* before a certificate expires, with a severity of SEV3 [1].",
+      "cited_sources": [
+        "ssl-certificate-expiry.md"
+      ],
+      "judge_score": 1,
+      "judge_reason": "The assistant mentions the 14 days and SEV3 severity, but omits the detail that the severity is raised to SEV2 at 3 days.",
+      "latency_ms": 2712,
       "error": null
     },
     {
@@ -346,12 +379,14 @@
       ],
       "top_score": 0.8485,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "If your access was approved recently, try the following steps:\n\n1. If access was approved less than 1 hour ago, sign out and sign in again on your laptop [1][2].\n2. Check that you are using the exact folder path from the approval email [1].\n3. Ask the folder owner to confirm you were added to the right group [1].",
+      "cited_sources": [
+        "shared-drive-access.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer covers all key facts from the reference answer (sign out/in, check folder path, ask owner to confirm group membership) accurately and without contradictions.",
+      "latency_ms": 2344,
       "error": null
     },
     {
@@ -366,12 +401,14 @@
       ],
       "top_score": 0.7262,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Sim, você consegue recuperar. Arquivos apagados do drive compartilhado podem ser restaurados a partir de snapshots tirados a cada 4 horas e mantidos por 30 dias [1]. \n\nPara recuperar:\n1. Se estiver usando Windows, clique com o botão direito na pasta e escolha *Properties > Previous Versions* [1].\n2. Se estiver usando macOS, abra um chamado [1].",
+      "cited_sources": [
+        "shared-drive-access.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly captures all key facts from the reference, including the frequency of snapshots (every 4 hours), the retention period (30 days), and the specific recovery methods for both Windows and macOS.",
+      "latency_ms": 2941,
       "error": null
     },
     {
@@ -386,12 +423,14 @@
       ],
       "top_score": 0.8045,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Acme laptops are replaced every *4 years*, and you will receive an email when your laptop is eligible [1].",
+      "cited_sources": [
+        "new-laptop-onboarding.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly states that Acme laptops are replaced every 4 years, matching the reference answer, and includes additional helpful context that does not contradict it.",
+      "latency_ms": 2305,
       "error": null
     },
     {
@@ -406,12 +445,15 @@
       ],
       "top_score": 0.7152,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "You must report a lost or stolen laptop within *24 hours* as a SEV2 security ticket [1][2].",
+      "cited_sources": [
+        "incident-severity-definitions.md",
+        "new-laptop-onboarding.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly identifies all key facts from the reference answer (within 24 hours and as a SEV2 security ticket) without any contradictions.",
+      "latency_ms": 2279,
       "error": null
     },
     {
@@ -426,12 +468,14 @@
       ],
       "top_score": 0.7811,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "The security review for new software takes up to *5 business days* [1].",
+      "cited_sources": [
+        "software-request-process.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly states that the security review takes up to 5 business days, matching the reference answer.",
+      "latency_ms": 3197,
       "error": null
     },
     {
@@ -446,12 +490,14 @@
       ],
       "top_score": 0.6619,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Para instalar o Visual Studio Code no seu notebook Windows, você pode usar a central de softwares aprovados da empresa [1]:\n\n1. Abra o *Acme Software Center* no seu Windows [1].\n2. Encontre o Visual Studio Code na lista e clique em *Install* [1].",
+      "cited_sources": [
+        "software-request-process.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly provides the key fact that Visual Studio Code should be installed from the Acme Software Center, matching the reference answer.",
+      "latency_ms": 2483,
       "error": null
     },
     {
@@ -466,12 +512,14 @@
       ],
       "top_score": 0.8379,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "The response time for a SEV2 incident is *1 hour*, 24x7 [1].",
+      "cited_sources": [
+        "incident-severity-definitions.md"
+      ],
+      "judge_score": 1,
+      "judge_reason": "The assistant mentions the 1 hour response time and 24x7 availability, but omits the key fact that the on-call engineer is paged.",
+      "latency_ms": 3238,
       "error": null
     },
     {
@@ -486,12 +534,15 @@
       ],
       "top_score": 0.8585,
       "rank": 2,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "SEV1 corresponds to *critical* priority [1][2].",
+      "cited_sources": [
+        "how-to-open-a-ticket.md",
+        "incident-severity-definitions.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly identifies that SEV1 corresponds to critical priority, matching the reference answer.",
+      "latency_ms": 3472,
       "error": null
     },
     {
@@ -506,12 +557,14 @@
       ],
       "top_score": 0.7643,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Each mailbox has a quota of *50 GB* [1].",
+      "cited_sources": [
+        "email-problems.md"
+      ],
+      "judge_score": 1,
+      "judge_reason": "The assistant mentions the 50 GB limit but misses the key facts about the 45 GB warning and that sending stops at 50 GB.",
+      "latency_ms": 3019,
       "error": null
     },
     {
@@ -526,12 +579,14 @@
       ],
       "top_score": 0.7244,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "O tamanho máximo permitido para mensagens de email (incluindo anexos) é de *25 MB* [1]. Mensagens maiores do que isso são rejeitadas, sendo recomendado o uso das unidades compartilhadas (shared drives) para o envio de arquivos grandes [1].",
+      "cited_sources": [
+        "email-problems.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant correctly states the maximum email and attachment size of 25 MB and advises using shared drives for larger files, matching the reference answer.",
+      "latency_ms": 2693,
       "error": null
     },
     {
@@ -546,12 +601,14 @@
       ],
       "top_score": 0.778,
       "rank": 1,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "Unreleased print jobs stay in the queue for *24 hours* before they are deleted [1].",
+      "cited_sources": [
+        "printer-issues.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly states that unreleased print jobs stay in the queue for 24 hours before being deleted, matching the reference answer.",
+      "latency_ms": 8701,
       "error": null
     },
     {
@@ -566,12 +623,16 @@
       ],
       "top_score": 0.7611,
       "rank": 2,
-      "outcome": null,
-      "answer": null,
-      "cited_sources": [],
-      "judge_score": null,
-      "judge_reason": null,
-      "latency_ms": null,
+      "outcome": "answered",
+      "answer": "The Service Desk phone extension is *4357* (or +1 555 010 4357 from outside) [1][2][3].",
+      "cited_sources": [
+        "how-to-open-a-ticket.md",
+        "mfa-issues.md",
+        "password-reset.md"
+      ],
+      "judge_score": 2,
+      "judge_reason": "The assistant answer correctly provides the extension and the outside phone number as stated in the reference, with extra citation markers that do not contradict the facts.",
+      "latency_ms": 3222,
       "error": null
     },
     {
@@ -586,12 +647,12 @@
       ],
       "top_score": 0.6643,
       "rank": null,
-      "outcome": null,
-      "answer": null,
+      "outcome": "low_confidence",
+      "answer": "",
       "cited_sources": [],
       "judge_score": null,
       "judge_reason": null,
-      "latency_ms": null,
+      "latency_ms": 3684,
       "error": null
     },
     {
@@ -606,12 +667,12 @@
       ],
       "top_score": 0.5572,
       "rank": null,
-      "outcome": null,
-      "answer": null,
+      "outcome": "low_confidence",
+      "answer": "",
       "cited_sources": [],
       "judge_score": null,
       "judge_reason": null,
-      "latency_ms": null,
+      "latency_ms": 2268,
       "error": null
     },
     {
@@ -626,12 +687,12 @@
       ],
       "top_score": 0.6251,
       "rank": null,
-      "outcome": null,
-      "answer": null,
+      "outcome": "low_confidence",
+      "answer": "",
       "cited_sources": [],
       "judge_score": null,
       "judge_reason": null,
-      "latency_ms": null,
+      "latency_ms": 5566,
       "error": null
     },
     {
@@ -646,12 +707,12 @@
       ],
       "top_score": 0.6486,
       "rank": null,
-      "outcome": null,
-      "answer": null,
+      "outcome": "low_confidence",
+      "answer": "",
       "cited_sources": [],
       "judge_score": null,
       "judge_reason": null,
-      "latency_ms": null,
+      "latency_ms": 3838,
       "error": null
     },
     {
@@ -666,12 +727,12 @@
       ],
       "top_score": 0.728,
       "rank": null,
-      "outcome": null,
-      "answer": null,
+      "outcome": "low_confidence",
+      "answer": "",
       "cited_sources": [],
       "judge_score": null,
       "judge_reason": null,
-      "latency_ms": null,
+      "latency_ms": 2253,
       "error": null
     }
   ]
