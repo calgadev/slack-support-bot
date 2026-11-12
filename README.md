@@ -228,7 +228,6 @@ The three answers scored 1 (`ssl-02`, `sev-01`, `mail-01`) are correct but leave
 - **Same-family judge**: the judge is a Gemini model grading Gemini answers, which can bias scores upward. Use the scores as a regression signal, not an absolute quality measure, and spot-check the per-question table.
 - **Small golden set**: 30 questions catch regressions but are not statistically strong.
 - **No conversation memory**: each message is answered on its own. A reply like "yes, open it" in a thread does not see earlier messages, so the bot offers a ticket draft with buttons instead.
-- **Docker image not yet verified end to end**: the Dockerfile and compose file have not been built and health-checked on a running Docker daemon for v0.1.0.
 - **Single instance**: Chroma and SQLite are local to one container. Horizontal scaling needs shared stores (see ADRs 0002 and 0003).
 - **Tickets stay local**: confirmed tickets are stored in SQLite, not sent to a real service desk.
 - **Language detection for fixed messages** (errors, status) is a simple PT/EN heuristic. LLM answers follow the user's language.
