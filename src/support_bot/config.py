@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     # Input guardrails
     max_input_chars: int = Field(default=2000, ge=100)
 
+    # Retrieval
+    knowledge_base_dir: Path = Path("knowledge_base")
+    retrieval_top_k: int = Field(default=4, ge=1, le=20)
+    retrieval_min_score: float = Field(default=0.5, ge=-1.0, le=1.0)
+
     # Storage
     data_dir: Path = Path("data")
 
@@ -39,6 +44,10 @@ class Settings(BaseSettings):
     # Health
     heartbeat_interval_seconds: int = Field(default=30, ge=1)
     heartbeat_max_age_seconds: int = Field(default=90, ge=1)
+
+    @property
+    def chroma_dir(self) -> Path:
+        return self.data_dir / "chroma"
 
     @property
     def heartbeat_path(self) -> Path:
