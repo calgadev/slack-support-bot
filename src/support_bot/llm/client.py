@@ -29,6 +29,25 @@ log = get_logger(__name__)
 RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
 
 
+def _transport_errors() -> tuple[type[BaseException], ...]:
+    """Network errors from httpx and from httpx2.
+
+    google-genai uses httpx2 (a fork with its own import namespace) when it is installed,
+    and its exceptions are not subclasses of the httpx ones, so both must be listed.
+    """
+    errors: list[type[BaseException]] = [httpx.TimeoutException, httpx.TransportError]
+    try:
+        import httpx2
+
+        errors += [httpx2.TimeoutException, httpx2.TransportError]
+    except ImportError:  # pragma: no cover - depends on the installed SDK extras
+        pass
+    return tuple(errors)
+
+
+TRANSPORT_ERRORS = _transport_errors()
+
+
 class LLMError(Exception):
     """Raised when the LLM call fails after all retries. Safe to show a generic message."""
 
@@ -79,7 +98,7 @@ class LLMClient(Protocol):
 def _is_retryable(exc: BaseException) -> bool:
     if isinstance(exc, genai_errors.APIError):
         return exc.code in RETRYABLE_STATUS
-    return isinstance(exc, httpx.TimeoutException | httpx.TransportError)
+    return isinstance(exc, TRANSPORT_ERRORS)
 
 
 def _log_retry(state: RetryCallState) -> None:
@@ -162,7 +181,7 @@ class GeminiClient:
             raise LLMError(
                 f"Gemini API error {exc.code}", retryable=_is_retryable(exc), status=exc.code
             ) from exc
-        except (httpx.TimeoutException, httpx.TransportError) as exc:
+        except TRANSPORT_ERRORS as exc:
             raise LLMError(f"Gemini transport error: {type(exc).__name__}", retryable=True) from exc
         return _to_llm_response(response, self.model)
 
@@ -180,7 +199,7 @@ class GeminiClient:
             raise LLMError(
                 f"Gemini embedding error {exc.code}", retryable=_is_retryable(exc), status=exc.code
             ) from exc
-        except (httpx.TimeoutException, httpx.TransportError) as exc:
+        except TRANSPORT_ERRORS as exc:
             raise LLMError(f"Gemini transport error: {type(exc).__name__}", retryable=True) from exc
         vectors = [list(e.values or []) for e in (result.embeddings or [])]
         if len(vectors) != len(texts):

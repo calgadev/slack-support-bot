@@ -20,7 +20,7 @@ _SHARED_PROCESSORS: list[Any] = [
     structlog.processors.StackInfoRenderer(),
 ]
 
-_NOISY_LOGGERS = ("httpx", "httpcore", "chromadb", "slack_sdk.socket_mode", "urllib3")
+_NOISY_LOGGERS = ("httpx", "httpx2", "httpcore", "chromadb", "slack_sdk.socket_mode", "urllib3")
 
 
 def configure_logging(level: str = "INFO") -> None:

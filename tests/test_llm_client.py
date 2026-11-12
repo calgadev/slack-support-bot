@@ -80,6 +80,18 @@ def test_timeout_becomes_retryable_llm_error() -> None:
     assert client._client.models.generate_content.call_count == 2
 
 
+@pytest.mark.parametrize("module", ["httpx", "httpx2"])
+def test_transport_errors_from_both_http_libraries_are_retried(module: str) -> None:
+    lib = pytest.importorskip(module)
+    client = make_client(max_attempts=2)
+    client._client.models.generate_content.side_effect = [lib.ReadTimeout("slow"), ok_response()]
+    assert client.generate(user("q"), system_instruction="s").text == "hi"
+    client._client.models.embed_content.side_effect = lib.ConnectError("down")
+    with pytest.raises(LLMError) as info:
+        client.embed(["a"])
+    assert info.value.retryable
+
+
 def test_parses_function_calls_and_skips_thoughts() -> None:
     response = types.GenerateContentResponse(
         candidates=[
